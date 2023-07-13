@@ -7,6 +7,13 @@ import passport from "passport";
 import path from "path";
 import cors from "cors";
 
+mongoose.set("strictQuery", false);
+const mongoDB = process.env.MONGODB_URI;
+main().catch((err) => console.log(err));
+async function main() {
+  await mongoose.connect(mongoDB);
+}
+
 const app = express();
 const port = process.env.PORT;
 app.use(passport.initialize());

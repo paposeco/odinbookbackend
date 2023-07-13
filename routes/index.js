@@ -1,14 +1,26 @@
 import express from "express";
 import passport from "passport";
-import homepage from "../controllers/homepage";
+import homepage, { homepage_get } from "../controllers/homepage";
+import { decodeToken } from "./auth";
 
 const router = express.Router();
 
-router.get("/", homepage.homepage_get);
+/* router.get(
+ *   "/",
+ *   passport.authenticate("jwt", { session: false }),
+ *   decodeToken,
+ *   homepage.homepage_get,
+ * ); */
+
 router.get(
-  "/jwttest",
+  "/:facebookid",
   passport.authenticate("jwt", { session: false }),
-  homepage.jwtteste_get
+  homepage_get,
 );
+/* router.get(
+ *   "/jwttest",
+ *   passport.authenticate("jwt", { session: false }),
+ *   homepage.jwtteste_get
+ * ); */
 
 export default router;
