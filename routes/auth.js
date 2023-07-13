@@ -14,9 +14,28 @@ passport.use(
       clientID: process.env["FACEBOOK_APP_ID"],
       clientSecret: process.env["FACEBOOK_APP_SECRET"],
       callbackURL: "http://localhost:3000/api/auth/facebook/callback",
+      profileFields: [
+        "id",
+        "displayName",
+        "picture.type(large)",
+        "birthday",
+        "gender",
+      ],
     },
     function(accessToken, refreshToken, profile, cb) {
-      return cb(null, profile);
+      // find user in db and return in the cb
+      console.log(profile);
+      //res.cookie("token", accessToken);
+
+      // by returning a user on the callback, user is accessible on req.user
+      const user = { profile: profile };
+      user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
+      /* req.login(user, function(err) {
+       *   if (err) {
+       *     return next(err);
+       *   }
+       * }); */
+      return cb(null, user);
       /* db.get(
        *   "SELECT * FROM federated_credentials WHERE provider = ? AND subject = ?",
        *   ["https://www.facebook.com", profile.id],
@@ -34,7 +53,7 @@ passport.use(
        *           if (err) {
        *             return cb(err);
        *           }
-
+ 
        *           var id = this.lastID;
        *           db.run(
        *             "INSERT INTO federated_credentials (user_id, provider, subject) VALUES (?, ?, ?)",
@@ -72,9 +91,30 @@ passport.use(
        *   }
        * );
          } */
-    }
-  )
+    },
+  ),
 );
+
+// token
+
+passport.use(
+  new JWTStrategy(
+    {
+      jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+      secretOrKey: process.env["JWTSECRET"],
+    },
+    function(jwtPayload, cb) {
+      // check if is user
+
+      return cb(null, true);
+    },
+  ),
+);
+
+export function decodeToken(req, res, next) {
+  const decoded = jwt.verify(req.body.token, process.env["JWTSECRET"]);
+  next();
+}
 
 // GET login
 
@@ -89,25 +129,16 @@ router.get("/retarded", (req, res) => {
 router.get(
   "/api/auth/facebook/callback",
   passport.authenticate("facebook", {
-    failureRedirect: "/retarded",
+    failureRedirect: process.env["REACT_APP_URL"] + "/login",
     failureMessage: true,
     session: false,
   }),
   (req, res) => {
-    res.redirect("/retarded");
-    //res.json({ message: "help" });
-  }
-  /* function(req, res) {
-   *   console.log("inside");
-   *   res.redirect("/retarded");
-   *   //res.status(200).json({ message: "non" });
-   * } */
-  /* function(req, res) {
-   *   console.log("redirect");
-   *   //res.status(301).redirect("http://localhost:8080");
-   *   return res.status(200).json({ message: "stop it" });
-   * } */
-  // should create a token to keep user logged in?
+    // successfully logged in
+    res.cookie("token", req.user.jwtoken);
+    // I can just send the token and profile info on a cookie and not send the token on the request
+    res.redirect(process.env["REACT_APP_URL"]);
+  },
 );
 
 export default router;

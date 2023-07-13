@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
   origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  allowedHeaders: "Origin,Content-Type,Accept",
+  allowedHeaders: "Origin,Content-Type,Accept,Authorization",
 };
 
 app.use(cors(corsOptions));
