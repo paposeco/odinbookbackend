@@ -8,9 +8,17 @@ exports.homepage_get = async function(req, res, next) {
   } catch (err) {
     return res.status(400).json({ message: err });
   }
-  //  return res.status(200).json({ message: "user logged in" });
 };
 
-exports.jwtteste_get = (req, res, next) => {
-  return res.json({ message: "hello" });
+exports.profilepic = async function(req, res, next) {
+  const facebookID = req.params.facebookid;
+  try {
+    const profilePicLocation = await User.findOne(
+      { facebook_id: facebookID },
+      "profile_pic",
+    ).exec();
+    return res.sendFile(profilePicLocation.profile_pic);
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
 };

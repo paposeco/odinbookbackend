@@ -4,10 +4,38 @@ import FacebookStrategy from "passport-facebook";
 import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/user";
+import path from "path";
+import fs from "fs";
+import { mkdir } from "node:fs/promises";
+import https from "https";
 
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 const router = express.Router();
+
+// create folder for facebookprofile and save profile picture
+const downloadFile = async function(url, dest, facebookid) {
+  try {
+    const folder = path.join(__dirname, "..", "/images", facebookid);
+    const createDir = await mkdir(folder);
+    const file = fs.createWriteStream("images/" + facebookid + dest);
+    https.get(url, (res) => {
+      res.pipe(file);
+      file
+        .on("finish", function() {
+          file.close();
+        })
+        .on("error", function(err) {
+          fs.unlink("images/" + facebookid + dest);
+          if (cb) {
+            console.log(err.message);
+          }
+        });
+    });
+  } catch (err) {
+    console.error(err.message);
+  }
+};
 
 passport.use(
   new FacebookStrategy(
@@ -28,20 +56,28 @@ passport.use(
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
-          console.log("not user");
+          downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
+          // should only save the profilepiclocation, if the download was successful
+          const profilePicLocation = path.join(
+            __dirname,
+            "..",
+            "/images",
+            profile.id,
+            "/profilepic.jpg",
+          );
           const newUser = new User({
             facebook_id: profile.id,
             display_name: profile.displayName,
-            profile_pic: profile.picture,
+            profile_pic: profilePicLocation,
             birthday: profile.birthday,
             gender: profile.gender,
           });
           await newUser.save();
           const user = { profile: profile };
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
+
           return cb(null, user);
         } else {
-          console.log("user");
           const user = { profile: profile };
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
           return cb(null, user);
@@ -68,15 +104,6 @@ passport.use(
     },
   ),
 );
-
-export function decodeToken(req, res, next) {
-  console.log(req);
-  //const decoded = jwt.verify(req.body.token, process.env["JWTSECRET"]);
-  // console.log(decoded);
-  /* req.body.facebookid = decoded.user.facebook_id;
-   * console.log(req.body); */
-  next();
-}
 
 // GET login
 
