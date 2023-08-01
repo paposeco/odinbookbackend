@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "./user";
 import Comment from "./comment";
+import { DateTime } from "luxon";
 const Schema = mongoose.Schema;
 
 const PostSchema = new Schema({
@@ -8,10 +9,10 @@ const PostSchema = new Schema({
   post_content: { type: String, required: true },
   comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
   likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  date: { type: Date, default: Date.now },
+  date: { type: Date, default: Date.now }
 });
 
-PostSchema.virtual("post_date").get(function() {
+PostSchema.virtual("post_date").get(function () {
   return DateTime.fromJSDate(this.date)
     .setLocale("en-gb")
     .toLocaleString(DateTime.DATETIME_SHORT);

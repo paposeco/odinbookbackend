@@ -1,7 +1,6 @@
 import express from "express";
 import passport from "passport";
 import homepage from "../controllers/homepage";
-import { decodeToken } from "./auth";
 
 const router = express.Router();
 
@@ -12,13 +11,15 @@ router.get("/hello", (req, res, next) => {
 router.get(
   "/:facebookid",
   passport.authenticate("jwt", { session: false }),
-  homepage.homepage_get,
+  homepage.homepage_get
 );
 
 router.get(
   "/:facebookid/profilepic",
   passport.authenticate("jwt", { session: false }),
-  homepage.profilepic,
+  homepage.profilepic
 );
+
+// timeline
 
 export default router;

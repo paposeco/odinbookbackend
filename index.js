@@ -6,6 +6,7 @@ import indexRouter from "./routes/index.js";
 import passport from "passport";
 import path from "path";
 import cors from "cors";
+import { createError } from "http-errors";
 
 mongoose.set("strictQuery", false);
 const mongoDB = process.env.MONGODB_URI;
@@ -25,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
   origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-  allowedHeaders: "Origin,Content-Type,Accept,Authorization",
+  allowedHeaders: "Origin,Content-Type,Accept,Authorization"
 };
 
 app.use(cors(corsOptions));
@@ -36,12 +37,12 @@ app.use("/", authRouter);
 app.use("/", indexRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};

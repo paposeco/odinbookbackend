@@ -14,7 +14,7 @@ const ExtractJWT = passportJWT.ExtractJwt;
 const router = express.Router();
 
 // create folder for facebookprofile and save profile picture
-const downloadFile = async function(url, dest, facebookid) {
+const downloadFile = async function (url, dest, facebookid) {
   try {
     const folder = path.join(__dirname, "..", "/images", facebookid);
     const createDir = await mkdir(folder);
@@ -22,14 +22,11 @@ const downloadFile = async function(url, dest, facebookid) {
     https.get(url, (res) => {
       res.pipe(file);
       file
-        .on("finish", function() {
+        .on("finish", function () {
           file.close();
         })
-        .on("error", function(err) {
+        .on("error", function () {
           fs.unlink("images/" + facebookid + dest);
-          if (cb) {
-            console.log(err.message);
-          }
         });
     });
   } catch (err) {
@@ -48,10 +45,10 @@ passport.use(
         "displayName",
         "picture.type(large)",
         "birthday",
-        "gender",
-      ],
+        "gender"
+      ]
     },
-    async function(accessToken, refreshToken, profile, cb) {
+    async function (accessToken, refreshToken, profile, cb) {
       // by returning a user on the callback, user is accessible on req.user
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
@@ -63,14 +60,14 @@ passport.use(
             "..",
             "/images",
             profile.id,
-            "/profilepic.jpg",
+            "/profilepic.jpg"
           );
           const newUser = new User({
             facebook_id: profile.id,
             display_name: profile.displayName,
             profile_pic: profilePicLocation,
             birthday: profile.birthday,
-            gender: profile.gender,
+            gender: profile.gender
           });
           await newUser.save();
           const user = { profile: profile };
@@ -85,8 +82,8 @@ passport.use(
       } catch (err) {
         return cb(err);
       }
-    },
-  ),
+    }
+  )
 );
 
 // token
@@ -95,14 +92,15 @@ passport.use(
   new JWTStrategy(
     {
       jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env["JWTSECRET"],
+      secretOrKey: process.env["JWTSECRET"]
     },
-    function(jwtPayload, cb) {
+    function (jwtPayload, cb) {
       // check if is user
-
+      console.log("passport");
+      // ????
       return cb(null, true);
-    },
-  ),
+    }
+  )
 );
 
 // GET login
@@ -120,7 +118,7 @@ router.get(
   passport.authenticate("facebook", {
     failureRedirect: process.env["REACT_APP_URL"] + "/login",
     failureMessage: true,
-    session: false,
+    session: false
   }),
   (req, res) => {
     // successfully logged in
@@ -128,7 +126,7 @@ router.get(
     res.cookie("facebookid", req.user.profile.id);
     // I can just send the token and profile info on a cookie and not send the token on the request
     res.redirect(process.env["REACT_APP_URL"]);
-  },
+  }
 );
 
 export default router;

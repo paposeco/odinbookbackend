@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { DateTime } from "luxon";
 import Post from "./post";
-import FriendNetwork from "./friendnetwork";
+import Birthday from "./birthday";
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
@@ -14,7 +14,10 @@ const UserSchema = new Schema({
   significant_other: { type: Schema.Types.ObjectId, ref: "User" },
   date_joined: { type: Date, default: Date.now },
   posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
-  friend_network: { type: Schema.Types.ObjectId, ref: "FriendNetwork" },
+  friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  requests_sent: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  requests_received: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  friends_birthdays: [{ type: Schema.Types.ObjectId, ref: "Birthday" }],
 });
 
 UserSchema.virtual("joined").get(function() {
