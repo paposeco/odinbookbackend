@@ -94,11 +94,12 @@ passport.use(
       jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env["JWTSECRET"]
     },
-    function (jwtPayload, cb) {
-      // check if is user
-      console.log("passport");
-      // ????
-      return cb(null, true);
+    function (jwtPayload, done) {
+      if (!jwtPayload.user) {
+        return done(null, false);
+      } else {
+        return done(null, true);
+      }
     }
   )
 );

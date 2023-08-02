@@ -1,6 +1,4 @@
 import mongoose from "mongoose";
-import User from "./user";
-import Comment from "./comment";
 import { DateTime } from "luxon";
 const Schema = mongoose.Schema;
 
@@ -16,6 +14,10 @@ PostSchema.virtual("post_date").get(function () {
   return DateTime.fromJSDate(this.date)
     .setLocale("en-gb")
     .toLocaleString(DateTime.DATETIME_SHORT);
+});
+
+PostSchema.virtual("like_counter").get(function () {
+  return this.likes.length;
 });
 
 module.exports = mongoose.model("Post", PostSchema);

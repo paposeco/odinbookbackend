@@ -3,6 +3,8 @@ import dotenv from "dotenv/config";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth.js";
 import indexRouter from "./routes/index.js";
+import postsRouter from "./routes/posts.js";
+import userRouter from "./routes/user.js";
 import passport from "passport";
 import path from "path";
 import cors from "cors";
@@ -35,6 +37,8 @@ app.use(cors(corsOptions));
 
 app.use("/", authRouter);
 app.use("/", indexRouter);
+app.use("/", postsRouter);
+app.use("/", userRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
