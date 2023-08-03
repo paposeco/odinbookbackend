@@ -71,12 +71,21 @@ passport.use(
           });
           await newUser.save();
           const user = { profile: profile };
+          /*          const user = {
+            facebook_id: profile.id,
+            display_name: profile.displayName
+          }; */
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
 
           return cb(null, user);
         } else {
           const user = { profile: profile };
+          /* const user = {
+            facebook_id: profile.id,
+            display_name: profile.displayName
+          }; */
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
+
           return cb(null, user);
         }
       } catch (err) {
@@ -95,9 +104,12 @@ passport.use(
       secretOrKey: process.env["JWTSECRET"]
     },
     function (jwtPayload, done) {
+      console.log(jwtPayload);
+      console.log(req._toParam);
       if (!jwtPayload.user) {
         return done(null, false);
       } else {
+        console.log(jwtPayload);
         return done(null, true);
       }
     }

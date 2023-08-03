@@ -129,6 +129,7 @@ exports.timeline = async function (req, res) {
     const currentUser = await User.findOne({
       facebook_id: req.params.facebookid
     }).exec();
+
     /*  model.find({
       '_id': { $in: [
           mongoose.Types.ObjectId('4ed3ede8844f0f351100000c'),
@@ -142,6 +143,16 @@ exports.timeline = async function (req, res) {
       return res.status(404).json({ message: "user not found" });
     } else {
       console.log(currentUser.friends);
+      // get current user friends' id
+      // find posts made by friends
+      // sort by date
+      // also get last post made by user
+
+      const friendsPosts = await Post.find({
+        _id: { $in: currentUser.friends }
+      }).exec();
+
+      console.log(friendsPosts);
       return res.json({ message: "ok\n" });
     }
     //const posts = await Post.

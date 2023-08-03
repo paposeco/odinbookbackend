@@ -8,9 +8,13 @@ router.get("/hello", (req, res, next) => {
   return res.json({ message: "hi" });
 });
 
+// does not work
 router.get(
   "/:facebookid",
-  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => {
+    req._toParam = "oi";
+    passport.authenticate("jwt", { session: false })(req, res, next);
+  },
   homepage.homepage_get
 );
 
