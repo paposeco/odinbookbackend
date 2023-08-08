@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "passport";
 import homepage from "../controllers/homepage";
+import postsController from "../controllers/postsController";
 
 const router = express.Router();
 
@@ -9,12 +10,18 @@ router.get("/hello", (req, res, next) => {
 });
 
 // does not work
+// router.get(
+//   "/:facebookid",
+//   (req, res, next) => {
+//     req._toParam = "oi";
+//     passport.authenticate("jwt", { session: false })(req, res, next);
+//   },
+//   homepage.homepage_get
+// );
+
 router.get(
-  "/:facebookid",
-  (req, res, next) => {
-    req._toParam = "oi";
-    passport.authenticate("jwt", { session: false })(req, res, next);
-  },
+  "/:facebookid/homepage",
+  passport.authenticate("jwt", { session: false }),
   homepage.homepage_get
 );
 

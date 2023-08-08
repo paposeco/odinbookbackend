@@ -82,3 +82,26 @@ exports.accept_friend_request = asyncHandler(async (req, res, next) => {
     return res.status(201).json({ message: "friend accepted" });
   }
 });
+
+exports.get_userprofile = async function (req, res) {
+  try {
+    const otherUser = await User.findOne({ facebook_id: req.params.userid });
+    if (!otherUser) {
+      return res.status(404).json({ message: "user not found" });
+    }
+    const currentUser = await User.findOne({
+      facebook_id: req.params.facebookid,
+      friends: { _id: otherUser._id }
+    }).exec();
+
+    if (!currentUser) {
+      // not friends, can't see everything
+    } else {
+      //friends, can see everything
+    }
+
+    return res.json({ message: "good stuff" });
+  } catch (err) {
+    return res.status(404).json({ message: "user not found" });
+  }
+};

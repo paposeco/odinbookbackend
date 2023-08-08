@@ -124,38 +124,41 @@ exports.get_post = async (req, res) => {
 
 // when fetching posts, check if current user liked it, so it shows and so the user can unlike it
 
+// if the user is very prolific, all he'll see are his posts
+
+//load more with scroll ?
 exports.timeline = async function (req, res) {
   try {
     const currentUser = await User.findOne({
       facebook_id: req.params.facebookid
     }).exec();
 
-    /*  model.find({
-      '_id': { $in: [
-          mongoose.Types.ObjectId('4ed3ede8844f0f351100000c'),
-          mongoose.Types.ObjectId('4ed3f117a844e0471100000d'), 
-          mongoose.Types.ObjectId('4ed3f18132f50c491100000e')
-      ]}
-  }, function(err, docs){
-       console.log(docs);
-  }); */
+    const userAndFriendsPosts = currentUser.friends.concat(currentUser._id);
     if (!currentUser) {
       return res.status(404).json({ message: "user not found" });
     } else {
-      console.log(currentUser.friends);
-      // get current user friends' id
-      // find posts made by friends
-      // sort by date
-      // also get last post made by user
-
-      const friendsPosts = await Post.find({
-        _id: { $in: currentUser.friends }
-      }).exec();
-
-      console.log(friendsPosts);
+      const timelinePosts = await Post.find({
+        author: { $in: userAndFriendsPosts }
+      })
+        .limit(5)
+        .sort({ date: 1 })
+        .populate({
+          path: "author",
+          select: ["facebook_id", "display_name", "profile_pic"]
+        })
+        .populate({
+          path: "comments",
+          select: ["comment_content", "date"],
+          populate: {
+            path: "author",
+            select: ["facebook_id", "display_name", "profile_pic"]
+          }
+        })
+        .populate({ path: "likes", select: ["facebook_id", "display_name"] })
+        .exec();
+      console.log(timelinePosts);
       return res.json({ message: "ok\n" });
     }
-    //const posts = await Post.
   } catch (err) {
     return res.status(404).json({ message: "cant load content" });
   }

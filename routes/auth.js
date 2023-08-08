@@ -71,19 +71,11 @@ passport.use(
           });
           await newUser.save();
           const user = { profile: profile };
-          /*          const user = {
-            facebook_id: profile.id,
-            display_name: profile.displayName
-          }; */
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
 
           return cb(null, user);
         } else {
           const user = { profile: profile };
-          /* const user = {
-            facebook_id: profile.id,
-            display_name: profile.displayName
-          }; */
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
 
           return cb(null, user);
@@ -101,16 +93,21 @@ passport.use(
   new JWTStrategy(
     {
       jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-      secretOrKey: process.env["JWTSECRET"]
+      secretOrKey: process.env["JWTSECRET"],
+      passReqToCallback: true
     },
-    function (jwtPayload, done) {
-      console.log(jwtPayload);
-      console.log(req._toParam);
+    function (req, jwtPayload, done) {
       if (!jwtPayload.user) {
         return done(null, false);
       } else {
-        console.log(jwtPayload);
-        return done(null, true);
+        // later check if this makes sense. if I use a token received by another account and try to access facebook with that token, is access refused because the ids don't match?
+        const userFacebookId = req.params.facebookid;
+        const tokenFacebookId = jwtPayload.user.profile.id;
+        if (userFacebookId === tokenFacebookId) {
+          return done(null, true);
+        } else {
+          return done(null, false);
+        }
       }
     }
   )

@@ -22,4 +22,10 @@ router.post(
   user_controller.accept_friend_request
 );
 
+router.get(
+  "/:facebookid/otheruserprofile/:userid",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_userprofile
+);
+
 export default router;
