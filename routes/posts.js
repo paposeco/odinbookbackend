@@ -5,38 +5,38 @@ import postsController from "../controllers/postsController";
 const router = express.Router();
 
 router.get(
-  "/:facebookid/newpost",
+  "/:facebookid/posts/newpost",
   passport.authenticate("jwt", { session: false }),
   postsController.newpost_get
 );
 
 router.post(
-  "/:facebookid/newpost",
+  "/:facebookid/posts/newpost",
   passport.authenticate("jwt", { session: false }),
   postsController.newpost_post
 );
 
 router.get(
-  "/:facebookid/timeline",
+  "/:facebookid/posts/timeline",
   passport.authenticate("jwt", { session: false }),
   postsController.timeline
 );
 
 //facebook id of signed in user, not author
 router.get(
-  "/:facebookid/:postid",
+  "/:facebookid/posts/:postid",
   passport.authenticate("jwt", { session: false }),
   postsController.get_post
 );
 
 router.put(
-  "/:facebookid/:postid/like",
+  "/:facebookid/posts/:postid/like",
   passport.authenticate("jwt", { session: false }),
   postsController.likepost
 );
 
 router.post(
-  "/:facebookid/:postid/comment",
+  "/:facebookid/posts/:postid/comment",
   passport.authenticate("jwt", { session: false }),
   postsController.newcomment
 );

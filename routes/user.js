@@ -28,4 +28,34 @@ router.get(
   user_controller.get_userprofile
 );
 
+router.get(
+  "/:facebookid/otheruserprofile/:friendid/friends",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_friend_listfriends
+);
+
+router.get(
+  "/:facebookid/friends",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_listfriends
+);
+
+router.get(
+  "/:facebookid/users",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_users
+);
+
+router.get(
+  "/:facebookid/editprofile",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_update_profile
+);
+
+router.post(
+  "/:facebookid/editprofile",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.post_update_profile
+);
+
 export default router;

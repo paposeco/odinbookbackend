@@ -104,8 +104,10 @@ passport.use(
         const userFacebookId = req.params.facebookid;
         const tokenFacebookId = jwtPayload.user.profile.id;
         if (userFacebookId === tokenFacebookId) {
+          console.log("matches");
           return done(null, true);
         } else {
+          console.log("doesnt match");
           return done(null, false);
         }
       }
