@@ -3,6 +3,7 @@ import Post from "../models/post";
 import Comment from "../models/comment";
 import { body, validationResult } from "express-validator";
 import asyncHandler from "express-async-handler";
+import path from "path";
 
 //get posts sends postid
 
@@ -31,11 +32,27 @@ exports.newpost_post = [
       if (!userID) {
         return res.status(400).json({ message: "user not found" });
       }
-      const newpost = new Post({
-        author: userID._id,
-        post_content: req.body.content
-      });
 
+      //save file and save path to DB
+      let newpost;
+      if (!req.file && !req.body.image_url) {
+        newpost = new Post({
+          author: userID._id,
+          post_content: req.body.content
+        });
+      } else if (!req.file && req.body.image_url) {
+        newpost = new Post({
+          author: userID._id,
+          post_content: req.body.content,
+          post_image: req.body.image_url
+        });
+      } else {
+        newpost = new Post({
+          author: userID._id,
+          post_content: req.body.content,
+          post_image: path.join(__dirname, "..", req.file.path)
+        });
+      }
       const savepost = await newpost.save();
       await User.findByIdAndUpdate(userID, {
         $push: { posts: savepost._id }

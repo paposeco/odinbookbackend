@@ -1,6 +1,14 @@
 import express from "express";
 import passport from "passport";
 import postsController from "../controllers/postsController";
+import multer from "multer";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, `images/${req.params.facebookid}/posts`);
+  }
+});
+const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -13,6 +21,7 @@ router.get(
 router.post(
   "/:facebookid/posts/newpost",
   passport.authenticate("jwt", { session: false }),
+  uploadPhoto.single("postimage"),
   postsController.newpost_post
 );
 

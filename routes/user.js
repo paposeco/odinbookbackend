@@ -1,6 +1,30 @@
 import express from "express";
 import user_controller from "../controllers/userController";
 import passport from "passport";
+import multer from "multer";
+import User from "../models/user";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, `images/${req.params.facebookid}`);
+  },
+  filename: async function (req, file, cb) {
+    try {
+      const currentProfile = await User.findOne(
+        { facebook_id: req.params.facebookid },
+        "profile_pic"
+      );
+      if (currentProfile.profile_pic.includes("new")) {
+        cb(null, "profilepic");
+      } else {
+        cb(null, "newprofilepic");
+      }
+    } catch (err) {
+      cb(console.error(error));
+    }
+  }
+});
+const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -56,6 +80,13 @@ router.post(
   "/:facebookid/editprofile",
   passport.authenticate("jwt", { session: false }),
   user_controller.post_update_profile
+);
+
+router.post(
+  "/:facebookid/uploadit",
+  passport.authenticate("jwt", { session: false }),
+  uploadPhoto.single("newprofilepic"),
+  user_controller.post_uploadphoto
 );
 
 export default router;

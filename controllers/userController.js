@@ -1,6 +1,8 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user";
 import { body, validationResult } from "express-validator";
+import { unlink } from "node:fs";
+import path from "path";
 
 // post
 
@@ -259,5 +261,25 @@ exports.post_update_profile = [
 ];
 
 // change profile pic
-// multer
+
+exports.post_uploadphoto = async function (req, res) {
+  try {
+    const userprofilepic = await User.findOne(
+      { facebook_id: req.params.facebookid },
+      "profile_pic"
+    ).exec();
+
+    unlink(path.join(__dirname, "..", userprofilepic.profile_pic), (err) => {
+      if (err) throw err;
+    });
+
+    await User.findByIdAndUpdate(userprofilepic._id, {
+      profile_pic: req.file.path
+    }).exec();
+    return res.json({ message: path.join(__dirname, "..", req.file.path) });
+  } catch (err) {
+    return res.json({ message: err });
+  }
+};
+
 // add images to posts

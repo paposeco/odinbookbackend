@@ -8,6 +8,7 @@ import path from "path";
 import fs from "fs";
 import { mkdir } from "node:fs/promises";
 import https from "https";
+import dotenv from "dotenv/config";
 
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
@@ -16,8 +17,17 @@ const router = express.Router();
 // create folder for facebookprofile and save profile picture
 const downloadFile = async function (url, dest, facebookid) {
   try {
-    const folder = path.join(__dirname, "..", "/images", facebookid);
-    const createDir = await mkdir(folder);
+    const folderProfile = path.join(__dirname, "..", "/images", facebookid);
+    const folderPostImages = path.join(
+      __dirname,
+      "..",
+      "/images",
+      facebookid,
+      "/posts"
+    );
+    await mkdir(folderProfile);
+    await mkdir(folderPostImages);
+
     const file = fs.createWriteStream("images/" + facebookid + dest);
     https.get(url, (res) => {
       res.pipe(file);
@@ -53,6 +63,7 @@ passport.use(
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
+          console.log("not user");
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
           // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
@@ -104,7 +115,6 @@ passport.use(
         const userFacebookId = req.params.facebookid;
         const tokenFacebookId = jwtPayload.user.profile.id;
         if (userFacebookId === tokenFacebookId) {
-          console.log("matches");
           return done(null, true);
         } else {
           console.log("doesnt match");

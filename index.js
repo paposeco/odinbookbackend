@@ -1,14 +1,17 @@
 import express from "express";
-import dotenv from "dotenv/config";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth.js";
 import indexRouter from "./routes/index.js";
 import postsRouter from "./routes/posts.js";
+import dotenv from "dotenv/config";
 import userRouter from "./routes/user.js";
 import passport from "passport";
 import path from "path";
 import cors from "cors";
 import { createError } from "http-errors";
+// import multer from "multer";
+
+// exports.uploadPhoto = multer({ dest: "images/" });
 
 mongoose.set("strictQuery", false);
 const mongoDB = process.env.MONGODB_URI;
