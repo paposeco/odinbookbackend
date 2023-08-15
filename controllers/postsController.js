@@ -34,17 +34,20 @@ exports.newpost_post = [
       }
 
       //save file and save path to DB
+
+      //need to handle url image
       let newpost;
-      if (!req.file && !req.body.image_url) {
+      if (!req.file && !req.body.imageurl) {
         newpost = new Post({
           author: userID._id,
           post_content: req.body.content
         });
-      } else if (!req.file && req.body.image_url) {
+      } else if (!req.file && req.body.imageurl) {
+        // get url and download file to server? no. it should be on frontend.
         newpost = new Post({
           author: userID._id,
           post_content: req.body.content,
-          post_image: req.body.image_url
+          post_image: req.body.imageurl
         });
       } else {
         newpost = new Post({
