@@ -1,5 +1,7 @@
 import passport from "passport";
 import passportJWT from "passport-jwt";
+import LocalStrategy from "passport-local";
+import bcrypt from "bcryptjs";
 import FacebookStrategy from "passport-facebook";
 import express from "express";
 import jwt from "jsonwebtoken";
@@ -8,7 +10,6 @@ import path from "path";
 import fs from "fs";
 import { mkdir } from "node:fs/promises";
 import https from "https";
-import dotenv from "dotenv/config";
 
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
@@ -111,7 +112,6 @@ passport.use(
       if (!jwtPayload.user) {
         return done(null, false);
       } else {
-        // later check if this makes sense. if I use a token received by another account and try to access facebook with that token, is access refused because the ids don't match?
         const userFacebookId = req.params.facebookid;
         const tokenFacebookId = jwtPayload.user.profile.id;
         if (userFacebookId === tokenFacebookId) {
@@ -125,14 +125,100 @@ passport.use(
   )
 );
 
+passport.use(
+  new LocalStrategy(async function verify(username, password, cb) {
+    try {
+      const userDB = await User.findOne(
+        { guest: true },
+        "display_name facebook_id profile_pic password"
+      ).exec();
+      if (!userDB) {
+        return cb(null, false, { message: "user not found" });
+      }
+      bcrypt.compare(password, userDB.password, (err, res) => {
+        if (res) {
+          //passwords match
+          userDB.jwtoken = jwt.sign({ userDB }, process.env["JWTSECRET"]);
+          return cb(null, userDB);
+        } else {
+          return cb(null, false, { message: "Wrong password" });
+        }
+      });
+    } catch (err) {
+      if (err) {
+        console.log(err);
+        return cb(err);
+      }
+    }
+  })
+);
+
 // GET login
 
 router.get("/api/auth/facebook", passport.authenticate("facebook"));
 
-// GET after login
+router.post("/guestlogin", (req, res, next) => {
+  passport.authenticate("local", { session: false }, (err, user, info) => {
+    if (err || !user) {
+      return res.status(400).json({
+        message: "Something is not right\n",
+        user: user
+      });
+    }
+    req.login(user, { session: false }, (err) => {
+      if (err) {
+        res.send(err);
+        return;
+      }
+      req.user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
+      return res.json({
+        token: req.user.jwtoken,
+        facebookid: req.user.facebook_id
+      });
+    });
+  })(req, res);
+});
 
-router.get("/retarded", (req, res) => {
-  res.json({ message: "sim" });
+// create guest
+router.post("/createguestlogin", async function (req, res, next) {
+  bcrypt.hash(req.body.password, 10, async function (err, hashedpassword) {
+    if (err) {
+      return next(err);
+    }
+    try {
+      console.log("try");
+      const newUser = new User({
+        facebook_id: "01111111122222222",
+        display_name: "Guest",
+        profile_pic: path.join(
+          __dirname,
+          "..",
+          "/images",
+          "01111111122222222",
+          "/profilepic.jpg"
+        ),
+        guest: true,
+        password: hashedpassword
+      });
+      const folderProfile = path.join(
+        __dirname,
+        "..",
+        "/images/01111111122222222"
+      );
+      const folderPostImages = path.join(
+        __dirname,
+        "..",
+        "/images/01111111122222222/posts"
+      );
+      await mkdir(folderProfile);
+      await mkdir(folderPostImages);
+      await newUser.save();
+      //return res.json({ message: "user created" });
+      return res.status(400).json({ message: "guest creation not available" });
+    } catch (err) {
+      return res.json({ err });
+    }
+  });
 });
 
 router.get(

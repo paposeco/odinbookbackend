@@ -147,6 +147,7 @@ exports.get_post = async (req, res) => {
 // if the user is very prolific, all he'll see are his posts
 
 //load more with scroll ?
+// timeline needs work and need to implement guest login
 exports.timeline = async function (req, res) {
   try {
     const currentUser = await User.findOne({
