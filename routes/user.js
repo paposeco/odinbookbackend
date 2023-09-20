@@ -5,10 +5,10 @@ import multer from "multer";
 import User from "../models/user";
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function(req, file, cb) {
     cb(null, `images/${req.params.facebookid}`);
   },
-  filename: async function (req, file, cb) {
+  filename: async function(req, file, cb) {
     try {
       const currentProfile = await User.findOne(
         { facebook_id: req.params.facebookid },
@@ -72,6 +72,12 @@ router.get(
 
 router.get(
   "/:facebookid/editprofile",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_update_profile
+);
+
+router.get(
+  "/:facebookid/headerinfo",
   passport.authenticate("jwt", { session: false }),
   user_controller.get_update_profile
 );

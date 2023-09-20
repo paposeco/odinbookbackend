@@ -87,7 +87,7 @@ exports.accept_friend_request = asyncHandler(async (req, res, next) => {
 });
 
 //unsure if I should limit the information visible to users
-exports.get_userprofile = async function (req, res) {
+exports.get_userprofile = async function(req, res) {
   try {
     const otherUser = await User.findOne({ facebook_id: req.params.userid })
       .populate({ path: "posts", options: { limit: 5, sort: { date: 1 } } })
@@ -133,7 +133,7 @@ exports.get_userprofile = async function (req, res) {
 
 // list of friends
 
-exports.get_listfriends = async function (req, res) {
+exports.get_listfriends = async function(req, res) {
   try {
     const user = await User.findOne({ facebook_id: req.params.facebookid })
       .populate({
@@ -148,7 +148,7 @@ exports.get_listfriends = async function (req, res) {
 };
 // list of other users friends
 
-exports.get_friend_listfriends = async function (req, res) {
+exports.get_friend_listfriends = async function(req, res) {
   try {
     const user = await User.findOne({
       facebook_id: req.params.facebookid
@@ -179,7 +179,7 @@ exports.get_friend_listfriends = async function (req, res) {
 
 // all users
 
-exports.get_users = async function (req, res) {
+exports.get_users = async function(req, res) {
   try {
     const allusers = await User.find({}, "facebook_id display_name profile_pic")
       .sort({ display_name: 1 })
@@ -195,12 +195,12 @@ exports.get_users = async function (req, res) {
 // gender must be formated on frontend too
 
 // send current profile info
-exports.get_update_profile = async function (req, res) {
+exports.get_update_profile = async function(req, res) {
   try {
     const userprofile = await User.findOne(
       { facebook_id: req.params.facebookid },
-      "display_name, birthday, gender, country"
-    );
+      "display_name birthday gender country profile_pic"
+    ).exec();
     return res.json({ userprofile });
   } catch (err) {
     return res.status(400).json({ message: "something went wrong" });
@@ -226,7 +226,7 @@ exports.post_update_profile = [
   // birthday
   // gender
   // country
-  async function (req, res) {
+  async function(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.json({ errors: errors.array(), profile_content: req.body });
@@ -262,7 +262,7 @@ exports.post_update_profile = [
 
 // change profile pic
 
-exports.post_uploadphoto = async function (req, res) {
+exports.post_uploadphoto = async function(req, res) {
   try {
     const userprofilepic = await User.findOne(
       { facebook_id: req.params.facebookid },

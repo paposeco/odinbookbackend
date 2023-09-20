@@ -37,12 +37,4 @@ router.get(
   homepage.homepage_get
 );
 
-router.get(
-  "/:facebookid/profilepic",
-  passport.authenticate("jwt", { session: false }),
-  homepage.profilepic
-);
-
-// timeline
-
 export default router;

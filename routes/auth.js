@@ -10,13 +10,14 @@ import path from "path";
 import fs from "fs";
 import { mkdir } from "node:fs/promises";
 import https from "https";
+import dotenv from "dotenv/config";
 
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 const router = express.Router();
 
 // create folder for facebookprofile and save profile picture
-const downloadFile = async function (url, dest, facebookid) {
+const downloadFile = async function(url, dest, facebookid) {
   try {
     const folderProfile = path.join(__dirname, "..", "/images", facebookid);
     const folderPostImages = path.join(
@@ -33,10 +34,10 @@ const downloadFile = async function (url, dest, facebookid) {
     https.get(url, (res) => {
       res.pipe(file);
       file
-        .on("finish", function () {
+        .on("finish", function() {
           file.close();
         })
-        .on("error", function () {
+        .on("error", function() {
           fs.unlink("images/" + facebookid + dest);
         });
     });
@@ -59,7 +60,7 @@ passport.use(
         "gender"
       ]
     },
-    async function (accessToken, refreshToken, profile, cb) {
+    async function(accessToken, refreshToken, profile, cb) {
       // by returning a user on the callback, user is accessible on req.user
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
@@ -89,7 +90,7 @@ passport.use(
         } else {
           const user = { profile: profile };
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
-
+          console.log(user.jwtoken);
           return cb(null, user);
         }
       } catch (err) {
@@ -108,7 +109,7 @@ passport.use(
       secretOrKey: process.env["JWTSECRET"],
       passReqToCallback: true
     },
-    function (req, jwtPayload, done) {
+    function(req, jwtPayload, done) {
       if (!jwtPayload.user) {
         return done(null, false);
       } else {
@@ -180,8 +181,8 @@ router.post("/guestlogin", (req, res, next) => {
 });
 
 // create guest
-router.post("/createguestlogin", async function (req, res, next) {
-  bcrypt.hash(req.body.password, 10, async function (err, hashedpassword) {
+router.post("/createguestlogin", async function(req, res, next) {
+  bcrypt.hash(req.body.password, 10, async function(err, hashedpassword) {
     if (err) {
       return next(err);
     }
@@ -224,7 +225,7 @@ router.post("/createguestlogin", async function (req, res, next) {
 router.get(
   "/api/auth/facebook/callback",
   passport.authenticate("facebook", {
-    failureRedirect: process.env["REACT_APP_URL"] + "/login",
+    failureRedirect: process.env["REACT_APP_URL"] + "login",
     failureMessage: true,
     session: false
   }),
@@ -233,7 +234,7 @@ router.get(
     res.cookie("token", req.user.jwtoken);
     res.cookie("facebookid", req.user.profile.id);
     // I can just send the token and profile info on a cookie and not send the token on the request
-    res.redirect(process.env["REACT_APP_URL"]);
+    res.redirect(process.env["REACT_APP_URL"] + "loggedin");
   }
 );
 

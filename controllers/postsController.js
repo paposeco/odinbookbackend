@@ -19,7 +19,7 @@ exports.newpost_post = [
     .withMessage("Post must not be empty")
     .isLength({ max: 10000 })
     .withMessage("Post exceeds maximum length of 10000 characters"),
-  async function (req, res, next) {
+  async function(req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log("error");
@@ -53,7 +53,7 @@ exports.newpost_post = [
         newpost = new Post({
           author: userID._id,
           post_content: req.body.content,
-          post_image: path.join(__dirname, "..", req.file.path)
+          post_image: path.join(req.file.path)
         });
       }
       const savepost = await newpost.save();
@@ -67,7 +67,7 @@ exports.newpost_post = [
   }
 ];
 
-exports.likepost = async function (req, res, next) {
+exports.likepost = async function(req, res, next) {
   try {
     const userID = await User.findOne({
       facebook_id: req.params.facebookid
@@ -89,7 +89,7 @@ exports.newcomment = [
     .withMessage("Comment must not be empty")
     .isLength({ max: 1000 })
     .withMessage("Comment exceeds maximum length of 1000 characters"),
-  async function (req, res, next) {
+  async function(req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.json({ errors: errors.array(), commentcontent: req.body });
@@ -107,7 +107,13 @@ exports.newcomment = [
       await Post.findByIdAndUpdate(req.params.postid, {
         $push: { comments: newcomment._id }
       }).exec();
-      return res.status(200).json({ message: "comment saved" });
+      const newcommentpopulated = await Comment.findById(
+        newcomment._id
+      ).populate({
+        path: "author",
+        select: ["facebook_id", "display_name", "profile_pic"]
+      });
+      return res.status(200).json({ newcommentpopulated });
     } catch (err) {
       return res.status(400).json({ message: err });
     }
@@ -134,8 +140,7 @@ exports.get_post = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "post not found" });
     } else {
-      console.log(post.like_counter);
-      return res.json({ post, message: "yeah\n" });
+      return res.json({ post });
     }
   } catch (err) {
     return res.status(404).json({ message: err });
@@ -148,7 +153,7 @@ exports.get_post = async (req, res) => {
 
 //load more with scroll ?
 // timeline needs work and need to implement guest login
-exports.timeline = async function (req, res) {
+exports.timeline = async function(req, res) {
   try {
     const currentUser = await User.findOne({
       facebook_id: req.params.facebookid
@@ -162,7 +167,7 @@ exports.timeline = async function (req, res) {
         author: { $in: userAndFriendsPosts }
       })
         .limit(5)
-        .sort({ date: 1 })
+        .sort({ date: -1 })
         .populate({
           path: "author",
           select: ["facebook_id", "display_name", "profile_pic"]
@@ -177,8 +182,7 @@ exports.timeline = async function (req, res) {
         })
         .populate({ path: "likes", select: ["facebook_id", "display_name"] })
         .exec();
-      console.log(timelinePosts);
-      return res.json({ message: "ok\n" });
+      return res.json({ timelinePosts });
     }
   } catch (err) {
     return res.status(404).json({ message: "cant load content" });
