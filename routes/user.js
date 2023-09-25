@@ -28,7 +28,13 @@ const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
-router.post(
+router.get(
+  "/:facebookid/relationship/:friendid",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.check_friend_status
+);
+
+router.put(
   "/:facebookid/addfriend/:friendid",
   passport.authenticate("jwt", { session: false }),
   user_controller.add_friend
@@ -47,15 +53,21 @@ router.post(
 );
 
 router.get(
+  "/:facebookid/otheruserprofile/:friendid/friends",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_friend_listfriends
+);
+
+router.get(
   "/:facebookid/otheruserprofile/:userid",
   passport.authenticate("jwt", { session: false }),
   user_controller.get_userprofile
 );
 
 router.get(
-  "/:facebookid/otheruserprofile/:friendid/friends",
+  "/:facebookid/profile",
   passport.authenticate("jwt", { session: false }),
-  user_controller.get_friend_listfriends
+  user_controller.get_currentuserprofile
 );
 
 router.get(

@@ -5,10 +5,6 @@ import postsController from "../controllers/postsController";
 
 const router = express.Router();
 
-router.get("/hello", (req, res, next) => {
-  return res.json({ message: "hi" });
-});
-
 // does not work
 // router.get(
 //   "/:facebookid",

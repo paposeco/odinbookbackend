@@ -1,10 +1,33 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user";
+import Post from "../models/post";
 import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs";
 import path from "path";
 
-// post
+exports.check_friend_status = async function(req, res, next) {
+  const currentUser = req.params.facebookid;
+  const friendId = req.params.friendid;
+
+  try {
+    const currentUserDBId = await User.findOne({
+      facebook_id: currentUser
+    }).exec();
+
+    const friendDBId = await User.findOne({
+      facebook_id: friendId,
+      friends: currentUserDBId
+    }).exec();
+
+    if (friendDBId) {
+      return res.status(201).json({ friends: true });
+    } else {
+      return res.status(201).json({ friends: false });
+    }
+  } catch (err) {
+    return res.status(404).json({ err });
+  }
+};
 
 exports.add_friend = asyncHandler(async (req, res, next) => {
   // add friend buttons needs to have the facebookid
@@ -79,18 +102,70 @@ exports.accept_friend_request = asyncHandler(async (req, res, next) => {
       }).exec(),
       User.findByIdAndUpdate(friendDBId._id, {
         $pull: { requests_received: currentUserDBId._id },
-        $push: { friends: friendDBId._id }
+        $push: { friends: currentUserDBId._id }
       }).exec()
     ]);
     return res.status(201).json({ message: "friend accepted" });
   }
 });
 
+exports.get_currentuserprofile = async function(req, res) {
+  try {
+    const user = await User.findOne({
+      facebook_id: req.params.facebookid
+    }).exec();
+
+    const userposts = await Post.find({
+      author: user._id
+    })
+      .limit(5)
+      .sort({ date: -1 })
+      .populate({
+        path: "author",
+        select: ["facebook_id", "display_name", "profile_pic"]
+      })
+      .populate({
+        path: "comments",
+        select: ["comment_content", "date"],
+        populate: {
+          path: "author",
+          select: ["facebook_id", "display_name", "profile_pic"]
+        }
+      })
+      .populate({ path: "likes", select: ["facebook_id", "display_name"] })
+      .exec();
+
+    if (!user) {
+      return res.status(404).json({ message: "user not found ?" });
+    } else {
+      return res.status(201).json({ user, userposts });
+    }
+  } catch (err) {
+    return res.status(404).json({ message: "db error" });
+  }
+};
+
 //unsure if I should limit the information visible to users
 exports.get_userprofile = async function(req, res) {
   try {
     const otherUser = await User.findOne({ facebook_id: req.params.userid })
-      .populate({ path: "posts", options: { limit: 5, sort: { date: 1 } } })
+      .populate({
+        path: "posts",
+        options: { limit: 5, sort: { date: -1 } },
+        populate: {
+          path: "author",
+          select: ["facebook_id", "display_name", "profile_pic"]
+        },
+        populate: { path: "likes", select: ["facebook_id", "display_name"] },
+        populate: {
+          path: "comments",
+          select: ["comment_content", "date"],
+          populate: {
+            path: "author",
+            select: ["facebook_id", "display_name", "profile_pic"]
+          }
+        }
+      })
       .exec();
     if (!otherUser) {
       return res.status(404).json({ message: "user not found" });
@@ -119,9 +194,8 @@ exports.get_userprofile = async function(req, res) {
         display_name: otherUser.display_name,
         facebook_id: otherUser.facebook_id,
         profile_pic: otherUser.profile_pic,
-        birthday: otherUser.birthday,
+        birthday: otherUser.date_birthday,
         country: otherUser.country,
-        significant_other: otherUser.significant_other,
         posts: otherUser.posts,
         friends: otherUser.friends.length
       });
@@ -168,6 +242,7 @@ exports.get_friend_listfriends = async function(req, res) {
           "you need to be friends first to be able to see this user's friends' list"
       });
     } else {
+      console.log(friend);
       return res.json({ friends: friend.friends });
     }
   } catch (err) {
