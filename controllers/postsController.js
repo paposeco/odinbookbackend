@@ -60,7 +60,7 @@ exports.newpost_post = [
       await User.findByIdAndUpdate(userID, {
         $push: { posts: savepost._id }
       }).exec();
-      return res.json({ message: "post saved" });
+      return res.status(201).json({ message: "post saved" });
     } catch (err) {
       return res.status(400).json({ message: err });
     }

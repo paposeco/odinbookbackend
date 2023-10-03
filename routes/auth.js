@@ -90,7 +90,6 @@ passport.use(
         } else {
           const user = { profile: profile };
           user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
-          console.log(user.jwtoken);
           return cb(null, user);
         }
       } catch (err) {
@@ -114,7 +113,12 @@ passport.use(
         return done(null, false);
       } else {
         const userFacebookId = req.params.facebookid;
-        const tokenFacebookId = jwtPayload.user.profile.id;
+        let tokenFacebookId = "";
+        if (jwtPayload.user.profile === undefined) {
+          tokenFacebookId = jwtPayload.user.facebook_id;
+        } else {
+          tokenFacebookId = jwtPayload.user.profile.id;
+        }
         if (userFacebookId === tokenFacebookId) {
           return done(null, true);
         } else {
@@ -140,6 +144,7 @@ passport.use(
         if (res) {
           //passwords match
           userDB.jwtoken = jwt.sign({ userDB }, process.env["JWTSECRET"]);
+
           return cb(null, userDB);
         } else {
           return cb(null, false, { message: "Wrong password" });

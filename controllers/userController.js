@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/user";
 import Post from "../models/post";
+import Country from "../models/country";
 import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs";
 import path from "path";
@@ -14,15 +15,24 @@ exports.check_friend_status = async function(req, res, next) {
       facebook_id: currentUser
     }).exec();
 
+    /* const friendDBId = await User.findOne({
+     *   facebook_id: friendId,
+     *   friends: currentUserDBId
+     * }).exec(); */
     const friendDBId = await User.findOne({
-      facebook_id: friendId,
-      friends: currentUserDBId
+      facebook_id: friendId
     }).exec();
 
-    if (friendDBId) {
-      return res.status(201).json({ friends: true });
+    const friends = currentUserDBId.friends.includes(friendDBId._id);
+    if (friends) {
+      return res.status(201).json({ friends: true, requestsent: false });
     } else {
-      return res.status(201).json({ friends: false });
+      const friendrequestexists = currentUserDBId.requests_sent.includes(
+        friendDBId._id
+      );
+      return res
+        .status(201)
+        .json({ friends: false, requestsent: friendrequestexists });
     }
   } catch (err) {
     return res.status(404).json({ err });
@@ -113,7 +123,9 @@ exports.get_currentuserprofile = async function(req, res) {
   try {
     const user = await User.findOne({
       facebook_id: req.params.facebookid
-    }).exec();
+    })
+      .populate({ path: "country", select: ["country"] })
+      .exec();
 
     const userposts = await Post.find({
       author: user._id
@@ -242,7 +254,6 @@ exports.get_friend_listfriends = async function(req, res) {
           "you need to be friends first to be able to see this user's friends' list"
       });
     } else {
-      console.log(friend);
       return res.json({ friends: friend.friends });
     }
   } catch (err) {
@@ -256,12 +267,24 @@ exports.get_friend_listfriends = async function(req, res) {
 
 exports.get_users = async function(req, res) {
   try {
-    const allusers = await User.find({}, "facebook_id display_name profile_pic")
-      .sort({ display_name: 1 })
+    const currentUser = await User.findOne(
+      {
+        facebook_id: req.params.facebookid
+      },
+      "requests_sent"
+    )
+      .populate({ path: "requests_sent", select: ["facebook_id"] })
       .exec();
-    return res.json({ allusers });
+    const allUsersNotFriends = await User.find(
+      { friends: { $nin: currentUser._id }, _id: { $ne: currentUser._id } },
+      "display_name facebook_id profile_pic"
+    )
+      .limit(10)
+      .exec();
+    console.log(allUsersNotFriends);
+    return res.status(201).json({ allUsersNotFriends, currentUser });
   } catch (err) {
-    return res.status(400).json({ message: "couldn't fetch all users" });
+    return res.status(400).json({ message: err });
   }
 };
 
@@ -269,15 +292,49 @@ exports.get_users = async function(req, res) {
 // need to format birthday on frontend as Date
 // gender must be formated on frontend too
 
+const formatDate = function(dbdate) {
+  if (!dbdate) {
+    return undefined;
+  }
+  const datearray = dbdate.split("/");
+  return `${datearray[2]}-${datearray[1]}-${datearray[0]}`;
+};
+
 // send current profile info
 exports.get_update_profile = async function(req, res) {
   try {
     const userprofile = await User.findOne(
       { facebook_id: req.params.facebookid },
-      "display_name birthday gender country profile_pic"
-    ).exec();
-    return res.json({ userprofile });
+      "display_name birthday gender country profile_pic requests_received requests_sent"
+    )
+      .populate({ path: "country", select: ["country"] })
+      .populate({
+        path: "requests_received",
+        select: ["display_name", "facebook_id", "profile_pic"]
+      })
+      .populate({
+        path: "requests_sent",
+        select: ["display_name", "facebook_id", "profile_pic"]
+      })
+      .exec();
+    const formattedbirthday = formatDate(userprofile.date_birthday);
+    return res.json({
+      userprofile: {
+        display_name: userprofile.display_name,
+        birthday: formattedbirthday,
+        gender:
+          userprofile.gender === undefined ? undefined : userprofile.gender,
+        country:
+          userprofile.country === undefined
+            ? undefined
+            : userprofile.country.country,
+        profile_pic: userprofile.profile_pic,
+        requests_received: userprofile.requests_received,
+        requests_sent: userprofile.requests_sent
+      }
+    });
   } catch (err) {
+    console.log(err);
     return res.status(400).json({ message: "something went wrong" });
   }
 };
@@ -297,10 +354,6 @@ exports.post_update_profile = [
   body("gender").optional().trim().escape(),
   body("country").optional().trim().escape(),
 
-  // profile_pic
-  // birthday
-  // gender
-  // country
   async function(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -309,31 +362,66 @@ exports.post_update_profile = [
     try {
       const existingProfile = await User.findOne({
         facebook_id: req.params.facebookid
-      });
+      }).exec();
+
+      const countryDb = await Country.findOne({
+        country: req.body.country
+      }).exec();
+
+      let updateuser;
+      if (countryDb === null) {
+        const newcountry = new Country({
+          counter: 1,
+          country: req.body.country
+        });
+        const savecountry = await newcountry.save();
+        updateuser = new User({
+          _id: existingProfile._id,
+          facebook_id: existingProfile.facebook_id,
+          display_name: req.body.display_name,
+          birthday: req.body.birthday,
+          gender: req.body.gender,
+          country: savecountry._id,
+          profile_pic: existingProfile.profile_pic,
+          date_joined: existingProfile.date_joined,
+          posts: existingProfile.posts,
+          friends: existingProfile.friends,
+          requests_sent: existingProfile.requests_sent,
+          requests_received: existingProfile.requests_received,
+          friends_birthdays: existingProfile.friends_birthdays
+        });
+      } else {
+        await findByIdAndUpdate(countryDb._id, { $inc: { counter: 1 } }).exec();
+        updateuser = new User({
+          _id: existingProfile._id,
+          facebook_id: existingProfile.facebook_id,
+          display_name: req.body.display_name,
+          birthday: req.body.birthday,
+          gender: req.body.gender,
+          country: countryDb._id,
+          profile_pic: existingProfile.profile_pic,
+          date_joined: existingProfile.date_joined,
+          posts: existingProfile.posts,
+          friends: existingProfile.friends,
+          requests_sent: existingProfile.requests_sent,
+          requests_received: existingProfile.requests_received,
+          friends_birthdays: existingProfile.friends_birthdays
+        });
+      }
 
       // friends birthdays??
-      const updateuser = new User({
-        _id: existingProfile._id,
-        facebook_id: existingProfile.facebook_id,
-        display_name: req.body.display_name,
-        birthday: req.body.birthday,
-        gender: req.body.gender,
-        country: req.body.country,
-        profile_pic: existingProfile.profile_pic,
-        date_joined: existingProfile.date_joined,
-        posts: existingProfile.posts,
-        friends: existingProfile.friends,
-        requests_sent: existingProfile.requests_sent,
-        requests_received: existingProfile.requests_received,
-        friends_birthdays: existingProfile.friends_birthdays
-      });
+
       await User.findByIdAndUpdate(existingProfile._id, updateuser);
-      return res.json({ message: "profile updated" });
+      return res.status(201).json({ message: "profile updated" });
     } catch (err) {
       return res.status(400).json({ message: err });
     }
   }
 ];
+
+// um user selecciona um pais
+// se estiver criado, nao faz nada e vai buscar o object id desse pais e mete no user
+// se nao estiver criado, faz um pais novo
 
 // change profile pic
 
@@ -351,7 +439,7 @@ exports.post_uploadphoto = async function(req, res) {
     await User.findByIdAndUpdate(userprofilepic._id, {
       profile_pic: req.file.path
     }).exec();
-    return res.json({ message: path.join(__dirname, "..", req.file.path) });
+    return res.status(201).json({ filepath: req.file.path });
   } catch (err) {
     return res.json({ message: err });
   }
