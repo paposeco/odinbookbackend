@@ -275,13 +275,16 @@ exports.get_users = async function(req, res) {
     )
       .populate({ path: "requests_sent", select: ["facebook_id"] })
       .exec();
+
+    const skipNumber = req.params.skip * 10;
     const allUsersNotFriends = await User.find(
       { friends: { $nin: currentUser._id }, _id: { $ne: currentUser._id } },
       "display_name facebook_id profile_pic"
     )
       .limit(10)
+      .skip(skipNumber)
+      .sort({ date_joined: 1 })
       .exec();
-    console.log(allUsersNotFriends);
     return res.status(201).json({ allUsersNotFriends, currentUser });
   } catch (err) {
     return res.status(400).json({ message: err });

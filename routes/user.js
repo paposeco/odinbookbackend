@@ -77,7 +77,7 @@ router.get(
 );
 
 router.get(
-  "/:facebookid/users",
+  "/:facebookid/users/:skip",
   passport.authenticate("jwt", { session: false }),
   user_controller.get_users
 );

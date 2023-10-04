@@ -69,9 +69,7 @@ passport.use(
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
           // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
-            __dirname,
-            "..",
-            "/images",
+            "images",
             profile.id,
             "/profilepic.jpg"
           );
@@ -192,35 +190,24 @@ router.post("/createguestlogin", async function(req, res, next) {
       return next(err);
     }
     try {
-      console.log("try");
       const newUser = new User({
-        facebook_id: "01111111122222222",
-        display_name: "Guest",
+        facebook_id: "01111111122222224",
+        display_name: "Fake user II",
         profile_pic: path.join(
-          __dirname,
-          "..",
-          "/images",
-          "01111111122222222",
+          "images",
+          "01111111122222224",
           "/profilepic.jpg"
         ),
         guest: true,
         password: hashedpassword
       });
-      const folderProfile = path.join(
-        __dirname,
-        "..",
-        "/images/01111111122222222"
-      );
-      const folderPostImages = path.join(
-        __dirname,
-        "..",
-        "/images/01111111122222222/posts"
-      );
+      const folderProfile = path.join("images", "01111111122222224");
+      const folderPostImages = path.join("images", "01111111122222224/posts");
       await mkdir(folderProfile);
       await mkdir(folderPostImages);
       await newUser.save();
-      //return res.json({ message: "user created" });
-      return res.status(400).json({ message: "guest creation not available" });
+      return res.json({ message: "user created" });
+      //return res.status(400).json({ message: "guest creation not available" });
     } catch (err) {
       return res.json({ err });
     }
