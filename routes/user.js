@@ -28,40 +28,10 @@ const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
-router.get(
-  "/:facebookid/relationship/:friendid",
-  passport.authenticate("jwt", { session: false }),
-  user_controller.check_friend_status
-);
-
-router.put(
-  "/:facebookid/addfriend/:friendid",
-  passport.authenticate("jwt", { session: false }),
-  user_controller.add_friend
-);
-
 router.post(
-  "/:facebookid/removefriend/:friendid",
+  "/removefriend/:facebookid/:friendid",
   passport.authenticate("jwt", { session: false }),
   user_controller.remove_friend
-);
-
-router.post(
-  "/:facebookid/acceptfriend/:friendid",
-  passport.authenticate("jwt", { session: false }),
-  user_controller.accept_friend_request
-);
-
-router.get(
-  "/:facebookid/otheruserprofile/:friendid/friends",
-  passport.authenticate("jwt", { session: false }),
-  user_controller.get_friend_listfriends
-);
-
-router.get(
-  "/:facebookid/otheruserprofile/:userid",
-  passport.authenticate("jwt", { session: false }),
-  user_controller.get_userprofile
 );
 
 router.get(
@@ -74,12 +44,6 @@ router.get(
   "/:facebookid/friends",
   passport.authenticate("jwt", { session: false }),
   user_controller.get_listfriends
-);
-
-router.get(
-  "/:facebookid/users/:skip",
-  passport.authenticate("jwt", { session: false }),
-  user_controller.get_users
 );
 
 router.get(
@@ -105,6 +69,42 @@ router.post(
   passport.authenticate("jwt", { session: false }),
   uploadPhoto.single("newprofilepic"),
   user_controller.post_uploadphoto
+);
+
+router.get(
+  "/:facebookid/relationship/:friendid",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.check_friend_status
+);
+
+router.put(
+  "/:facebookid/addfriend/:friendid",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.add_friend
+);
+
+router.post(
+  "/:facebookid/acceptfriend/:friendid",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.accept_friend_request
+);
+
+router.get(
+  "/:facebookid/otheruserprofile/:userid/:skip",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_userprofile
+);
+
+router.get(
+  "/:facebookid/users/:skip",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_users
+);
+
+router.get(
+  "/:facebookid/otheruserprofile/:friendid/friends",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_friend_listfriends
 );
 
 export default router;

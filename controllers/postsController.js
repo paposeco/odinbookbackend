@@ -5,12 +5,6 @@ import { body, validationResult } from "express-validator";
 import asyncHandler from "express-async-handler";
 import path from "path";
 
-//get posts sends postid
-
-exports.newpost_get = (req, res, next) => {
-  return res.json({ message: "it works" });
-};
-
 exports.newpost_post = [
   body("content")
     .trim()
@@ -160,13 +154,15 @@ exports.timeline = async function(req, res) {
     }).exec();
 
     const userAndFriendsPosts = currentUser.friends.concat(currentUser._id);
+    const skipNumber = req.params.skip * 3;
     if (!currentUser) {
       return res.status(404).json({ message: "user not found" });
     } else {
       const timelinePosts = await Post.find({
         author: { $in: userAndFriendsPosts }
       })
-        .limit(5)
+        .limit(3)
+        .skip(skipNumber)
         .sort({ date: -1 })
         .populate({
           path: "author",

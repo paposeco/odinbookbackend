@@ -107,9 +107,15 @@ passport.use(
       passReqToCallback: true
     },
     function(req, jwtPayload, done) {
+      console.log("inside token");
       if (!jwtPayload.user) {
+        console.log("not user");
         return done(null, false);
       } else {
+        console.log("user");
+        console.log("current request");
+        console.log(req.url);
+        console.log(jwtPayload);
         const userFacebookId = req.params.facebookid;
         let tokenFacebookId = "";
         if (jwtPayload.user.profile === undefined) {
@@ -118,6 +124,7 @@ passport.use(
           tokenFacebookId = jwtPayload.user.profile.id;
         }
         if (userFacebookId === tokenFacebookId) {
+          console.log("matches");
           return done(null, true);
         } else {
           console.log("doesnt match");
@@ -231,3 +238,5 @@ router.get(
 );
 
 export default router;
+
+// remove request sent and received once friendship is accepted

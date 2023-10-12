@@ -8,6 +8,7 @@ import userRouter from "./routes/user.js";
 import passport from "passport";
 import path from "path";
 import cors from "cors";
+import userController from "./controllers/userController.js";
 import { createError } from "http-errors";
 // import multer from "multer";
 

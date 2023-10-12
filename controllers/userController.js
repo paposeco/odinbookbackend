@@ -66,58 +66,78 @@ exports.add_friend = asyncHandler(async (req, res, next) => {
 });
 
 // post
-exports.remove_friend = asyncHandler(async (req, res, next) => {
+exports.remove_friend = async function(req, res, next) {
   const currentUser = req.params.facebookid;
   const friendId = req.params.friendid;
 
-  const currentUserDBId = await User.findOne({
-    facebook_id: currentUser
-  }).exec();
-  const friendDBId = await User.findOne({ facebook_id: friendId }).exec();
-
-  if (!currentUserDBId || !friendDBId) {
-    const err = new Error("User not found");
-    return res.status(404).json({ message: err });
-  } else {
-    const [updateUser, updateFriend] = await Promise.all([
-      User.findByIdAndUpdate(currentUserDBId._id, {
+  try {
+    const currentUserDBId = await User.findOne({
+      facebook_id: currentUser
+    }).exec();
+    const friendDBId = await User.findOne({ facebook_id: friendId }).exec();
+    if (!currentUserDBId || !friendDBId) {
+      const err = new Error("User not found");
+      return res.status(404).json({ message: err });
+    } else {
+      await User.findByIdAndUpdate(currentUserDBId._id, {
         $pull: { friends: friendDBId._id }
-      }).exec(),
-      User.findByIdAndUpdate(friendDBId._id, {
+      }).exec();
+
+      await User.findByIdAndUpdate(friendDBId._id, {
         $pull: { friends: currentUserDBId._id }
-      }).exec()
-    ]);
-    return res.status(201).json({ message: "friend removed" });
+      }).exec();
+
+      return res.status(201).json({ message: "friend removed" });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err });
   }
-});
+};
 
 // post
-exports.accept_friend_request = asyncHandler(async (req, res, next) => {
+exports.accept_friend_request = async function(req, res, next) {
   const currentUser = req.params.facebookid;
   const friendId = req.params.friendid;
+  try {
+    const currentUserDBId = await User.findOne({
+      facebook_id: currentUser
+    }).exec();
+    const friendDBId = await User.findOne({ facebook_id: friendId }).exec();
+    if (!currentUserDBId || !friendDBId) {
+      const err = new Error("User not found");
+      return res.status(404).json({ message: err });
+    } else {
+      if (currentUserDBId.requests_received.includes(friendDBId._id)) {
+        // remove from requests received on current user and remove from requests sent from friend
 
-  const currentUserDBId = await User.findOne({
-    facebook_id: currentUser
-  }).exec();
-  const friendDBId = await User.findOne({ facebook_id: friendId }).exec();
+        await User.findByIdAndUpdate(currentUserDBId._id, {
+          $pull: { requests_received: friendDBId._id },
+          $push: { friends: friendDBId._id }
+        }).exec();
 
-  if (!currentUserDBId || !friendDBId) {
-    const err = new Error("User not found");
-    return res.status(404).json({ message: err });
-  } else {
-    const [updateUser, updateFriend] = await Promise.all([
-      User.findByIdAndUpdate(currentUserDBId._id, {
-        $pull: { requests_sent: friendDBId._id },
-        $push: { friends: friendDBId._id }
-      }).exec(),
-      User.findByIdAndUpdate(friendDBId._id, {
-        $pull: { requests_received: currentUserDBId._id },
-        $push: { friends: currentUserDBId._id }
-      }).exec()
-    ]);
-    return res.status(201).json({ message: "friend accepted" });
+        await User.findByIdAndUpdate(friendDBId._id, {
+          $pull: { requests_sent: currentUserDBId._id },
+          $push: { friends: currentUserDBId._id }
+        }).exec();
+      } else {
+        //remove from request received on friend and from requests sent from user
+
+        await User.findByIdAndUpdate(currentUserDBId._id, {
+          $pull: { requests_sent: friendDBId._id },
+          $push: { friends: friendDBId._id }
+        }).exec();
+
+        await User.findByIdAndUpdate(friendDBId._id, {
+          $pull: { requests_received: currentUserDBId._id },
+          $push: { friends: currentUserDBId._id }
+        }).exec();
+      }
+      return res.status(201).json({ message: "friend accepted" });
+    }
+  } catch (err) {
+    return res.status(400).json({ message: err });
   }
-});
+};
 
 exports.get_currentuserprofile = async function(req, res) {
   try {
@@ -161,23 +181,27 @@ exports.get_currentuserprofile = async function(req, res) {
 exports.get_userprofile = async function(req, res) {
   try {
     const otherUser = await User.findOne({ facebook_id: req.params.userid })
+      .populate({ path: "country", select: ["country"] })
+      .exec();
+
+    const skipNumber = req.params.skip * 3;
+    const otherUserPosts = await Post.find({ author: otherUser._id })
+      .limit(3)
+      .skip(skipNumber)
+      .sort({ date: -1 })
       .populate({
-        path: "posts",
-        options: { limit: 5, sort: { date: -1 } },
+        path: "author",
+        select: ["facebook_id", "display_name", "profile_pic"]
+      })
+      .populate({
+        path: "comments",
+        select: ["comment_content", "date"],
         populate: {
           path: "author",
           select: ["facebook_id", "display_name", "profile_pic"]
-        },
-        populate: { path: "likes", select: ["facebook_id", "display_name"] },
-        populate: {
-          path: "comments",
-          select: ["comment_content", "date"],
-          populate: {
-            path: "author",
-            select: ["facebook_id", "display_name", "profile_pic"]
-          }
         }
       })
+      .populate({ path: "likes", select: ["facebook_id", "display_name"] })
       .exec();
     if (!otherUser) {
       return res.status(404).json({ message: "user not found" });
@@ -189,8 +213,6 @@ exports.get_userprofile = async function(req, res) {
 
     if (!currentUser) {
       // not friends, can't see everything
-      // see profile photo
-      // name
       return res.status(201).json({
         display_name: otherUser.display_name,
         facebook_id: otherUser.facebook_id,
@@ -198,21 +220,21 @@ exports.get_userprofile = async function(req, res) {
       });
     } else {
       //friends, can see everything
-      // see profile photo
-      // name
-      // posts
-      // friends
       return res.status(201).json({
         display_name: otherUser.display_name,
         facebook_id: otherUser.facebook_id,
         profile_pic: otherUser.profile_pic,
         birthday: otherUser.date_birthday,
-        country: otherUser.country,
-        posts: otherUser.posts,
+        country:
+          otherUser.country === undefined
+            ? undefined
+            : otherUser.country.country,
+        posts: otherUserPosts,
         friends: otherUser.friends.length
       });
     }
   } catch (err) {
+    console.log(err);
     return res.status(404).json({ message: "user not found" });
   }
 };

@@ -4,7 +4,7 @@ import postsController from "../controllers/postsController";
 import multer from "multer";
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function(req, file, cb) {
     cb(null, `images/${req.params.facebookid}/posts`);
   }
 });
@@ -12,11 +12,11 @@ const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
-router.get(
-  "/:facebookid/posts/newpost",
-  passport.authenticate("jwt", { session: false }),
-  postsController.newpost_get
-);
+/* router.get(
+ *   "/:facebookid/posts/newpost",
+ *   passport.authenticate("jwt", { session: false }),
+ *   postsController.newpost_get
+ * ); */
 
 router.post(
   "/:facebookid/posts/newpost",
@@ -26,7 +26,7 @@ router.post(
 );
 
 router.get(
-  "/:facebookid/posts/timeline",
+  "/:facebookid/posts/timeline/:skip",
   passport.authenticate("jwt", { session: false }),
   postsController.timeline
 );
