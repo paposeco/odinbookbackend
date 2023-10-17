@@ -184,25 +184,6 @@ exports.get_userprofile = async function(req, res) {
       .populate({ path: "country", select: ["country"] })
       .exec();
 
-    const skipNumber = req.params.skip * 3;
-    const otherUserPosts = await Post.find({ author: otherUser._id })
-      .limit(3)
-      .skip(skipNumber)
-      .sort({ date: -1 })
-      .populate({
-        path: "author",
-        select: ["facebook_id", "display_name", "profile_pic"]
-      })
-      .populate({
-        path: "comments",
-        select: ["comment_content", "date"],
-        populate: {
-          path: "author",
-          select: ["facebook_id", "display_name", "profile_pic"]
-        }
-      })
-      .populate({ path: "likes", select: ["facebook_id", "display_name"] })
-      .exec();
     if (!otherUser) {
       return res.status(404).json({ message: "user not found" });
     }
@@ -220,6 +201,23 @@ exports.get_userprofile = async function(req, res) {
       });
     } else {
       //friends, can see everything
+      const otherUserPosts = await Post.find({ author: otherUser._id })
+        .limit(10)
+        .sort({ date: -1 })
+        .populate({
+          path: "author",
+          select: ["facebook_id", "display_name", "profile_pic"]
+        })
+        .populate({
+          path: "comments",
+          select: ["comment_content", "date"],
+          populate: {
+            path: "author",
+            select: ["facebook_id", "display_name", "profile_pic"]
+          }
+        })
+        .populate({ path: "likes", select: ["facebook_id", "display_name"] })
+        .exec();
       return res.status(201).json({
         display_name: otherUser.display_name,
         facebook_id: otherUser.facebook_id,
@@ -298,12 +296,12 @@ exports.get_users = async function(req, res) {
       .populate({ path: "requests_sent", select: ["facebook_id"] })
       .exec();
 
-    const skipNumber = req.params.skip * 10;
+    const skipNumber = req.params.skip * 20;
     const allUsersNotFriends = await User.find(
       { friends: { $nin: currentUser._id }, _id: { $ne: currentUser._id } },
       "display_name facebook_id profile_pic"
     )
-      .limit(10)
+      .limit(20)
       .skip(skipNumber)
       .sort({ date_joined: 1 })
       .exec();
@@ -313,7 +311,6 @@ exports.get_users = async function(req, res) {
   }
 };
 
-// edit profile
 // need to format birthday on frontend as Date
 // gender must be formated on frontend too
 
@@ -371,13 +368,6 @@ exports.post_update_profile = [
     .withMessage("Name can't be empty")
     .isLength({ max: 30 })
     .withMessage("Name length can't exceed 30 characters"),
-  body("birthday")
-    .optional()
-    .trim()
-    .isDate()
-    .withMessage("Birthday must be a date"),
-  body("gender").optional().trim().escape(),
-  body("country").optional().trim().escape(),
 
   async function(req, res) {
     const errors = validationResult(req);
@@ -400,42 +390,141 @@ exports.post_update_profile = [
           country: req.body.country
         });
         const savecountry = await newcountry.save();
-        updateuser = new User({
-          _id: existingProfile._id,
-          facebook_id: existingProfile.facebook_id,
-          display_name: req.body.display_name,
-          birthday: req.body.birthday,
-          gender: req.body.gender,
-          country: savecountry._id,
-          profile_pic: existingProfile.profile_pic,
-          date_joined: existingProfile.date_joined,
-          posts: existingProfile.posts,
-          friends: existingProfile.friends,
-          requests_sent: existingProfile.requests_sent,
-          requests_received: existingProfile.requests_received,
-          friends_birthdays: existingProfile.friends_birthdays
-        });
+        if (req.body.birthday.includes("undefined")) {
+          if (req.body.gender === "Empty") {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              country: savecountry._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          } else {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              gender: req.body.gender,
+              country: savecountry._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          }
+        } else {
+          if (req.body.gender === "Empty") {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              birthday: req.body.birthday,
+              country: savecountry._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          } else {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              birthday: req.body.birthday,
+              gender: req.body.gender,
+              country: savecountry._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          }
+        }
       } else {
-        await findByIdAndUpdate(countryDb._id, { $inc: { counter: 1 } }).exec();
-        updateuser = new User({
-          _id: existingProfile._id,
-          facebook_id: existingProfile.facebook_id,
-          display_name: req.body.display_name,
-          birthday: req.body.birthday,
-          gender: req.body.gender,
-          country: countryDb._id,
-          profile_pic: existingProfile.profile_pic,
-          date_joined: existingProfile.date_joined,
-          posts: existingProfile.posts,
-          friends: existingProfile.friends,
-          requests_sent: existingProfile.requests_sent,
-          requests_received: existingProfile.requests_received,
-          friends_birthdays: existingProfile.friends_birthdays
-        });
+        await Country.findByIdAndUpdate(countryDb._id, {
+          $inc: { counter: 1 }
+        }).exec();
+        if (req.body.birthday.includes("undefined")) {
+          if (req.body.gender === "Empty") {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              country: countryDb._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          } else {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              gender: req.body.gender,
+              country: countryDb._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          }
+        } else {
+          if (req.body.gender === "Empty") {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              birthday: req.body.birthday,
+              country: countryDb._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          } else {
+            updateuser = new User({
+              _id: existingProfile._id,
+              facebook_id: existingProfile.facebook_id,
+              display_name: req.body.display_name,
+              birthday: req.body.birthday,
+              gender: req.body.gender,
+              country: countryDb._id,
+              profile_pic: existingProfile.profile_pic,
+              date_joined: existingProfile.date_joined,
+              posts: existingProfile.posts,
+              friends: existingProfile.friends,
+              requests_sent: existingProfile.requests_sent,
+              requests_received: existingProfile.requests_received,
+              friends_birthdays: existingProfile.friends_birthdays
+            });
+          }
+        }
       }
-
-      // friends birthdays??
-
       await User.findByIdAndUpdate(existingProfile._id, updateuser);
       return res.status(201).json({ message: "profile updated" });
     } catch (err) {
@@ -443,12 +532,6 @@ exports.post_update_profile = [
     }
   }
 ];
-
-// um user selecciona um pais
-// se estiver criado, nao faz nada e vai buscar o object id desse pais e mete no user
-// se nao estiver criado, faz um pais novo
-
-// change profile pic
 
 exports.post_uploadphoto = async function(req, res) {
   try {
@@ -470,4 +553,65 @@ exports.post_uploadphoto = async function(req, res) {
   }
 };
 
-// add images to posts
+// search for users using name
+
+exports.post_search_user = [
+  body("searchkeyword")
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage("Search keyword must be at least 3 characters")
+    .isLength({ max: 20 })
+    .withMessage("Search keywords mustn't exceed 30 characters"),
+  async function(req, res) {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.json({ errors: errors.array(), profile_content: req.body });
+    }
+    try {
+      // except current user
+      console.log(req.body.searchkeyword);
+      const usersthatmatch = await User.find(
+        {
+          display_name: {
+            $regex: ".*" + req.body.searchkeyword + ".*",
+            $options: "i"
+          }
+        },
+        "display_name"
+      ).exec();
+      console.log(usersthatmatch);
+      return res.status(200).json({ message: "ok" });
+      //  const usersthatmatch
+    } catch (err) {
+      return res.status(400).json({ err });
+    }
+  }
+];
+
+// browser users near you
+
+exports.get_users_bycountry = async function(req, res) {
+  try {
+    const currentUser = await User.findOne(
+      {
+        facebook_id: req.params.facebookid
+      },
+      "requests_sent"
+    )
+      .populate({ path: "requests_sent", select: ["facebook_id"] })
+      .exec();
+    const countrycode = req.params.countrycode;
+    const country = await Country.findOne({ country: countrycode }).exec();
+    const allUsersNotFriends = await User.find(
+      { country: country._id, _id: { $ne: currentUser._id } },
+      "display_name facebook_id profile_pic"
+    )
+      .limit(20)
+      .sort({ date_joined: 1 })
+      .exec();
+
+    return res.status(201).json({ allUsersNotFriends, currentUser });
+  } catch (err) {
+    return res.status(400).json({ message: err });
+  }
+};

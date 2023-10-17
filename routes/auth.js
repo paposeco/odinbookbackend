@@ -65,7 +65,6 @@ passport.use(
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
-          console.log("not user");
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
           // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
@@ -107,15 +106,9 @@ passport.use(
       passReqToCallback: true
     },
     function(req, jwtPayload, done) {
-      console.log("inside token");
       if (!jwtPayload.user) {
-        console.log("not user");
         return done(null, false);
       } else {
-        console.log("user");
-        console.log("current request");
-        console.log(req.url);
-        console.log(jwtPayload);
         const userFacebookId = req.params.facebookid;
         let tokenFacebookId = "";
         if (jwtPayload.user.profile === undefined) {
@@ -124,10 +117,8 @@ passport.use(
           tokenFacebookId = jwtPayload.user.profile.id;
         }
         if (userFacebookId === tokenFacebookId) {
-          console.log("matches");
           return done(null, true);
         } else {
-          console.log("doesnt match");
           return done(null, false);
         }
       }

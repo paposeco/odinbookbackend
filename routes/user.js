@@ -71,6 +71,18 @@ router.post(
   user_controller.post_uploadphoto
 );
 
+router.post(
+  "/:facebookid/searchuser",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.post_search_user
+);
+
+router.get(
+  "/:facebookid/usersnear/:countrycode",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_users_bycountry
+);
+
 router.get(
   "/:facebookid/relationship/:friendid",
   passport.authenticate("jwt", { session: false }),
@@ -90,7 +102,7 @@ router.post(
 );
 
 router.get(
-  "/:facebookid/otheruserprofile/:userid/:skip",
+  "/:facebookid/otheruserprofile/:userid",
   passport.authenticate("jwt", { session: false }),
   user_controller.get_userprofile
 );
