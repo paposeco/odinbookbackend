@@ -78,6 +78,12 @@ router.post(
 );
 
 router.get(
+  "/:facebookid/birthdays",
+  passport.authenticate("jwt", { session: false }),
+  user_controller.get_birthdays
+);
+
+router.get(
   "/:facebookid/usersnear/:countrycode",
   passport.authenticate("jwt", { session: false }),
   user_controller.get_users_bycountry

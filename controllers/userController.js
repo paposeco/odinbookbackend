@@ -5,6 +5,7 @@ import Country from "../models/country";
 import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs";
 import path from "path";
+import { DateTime } from "luxon";
 
 exports.check_friend_status = async function(req, res, next) {
   const currentUser = req.params.facebookid;
@@ -170,6 +171,8 @@ exports.get_currentuserprofile = async function(req, res) {
     if (!user) {
       return res.status(404).json({ message: "user not found ?" });
     } else {
+      console.log(user);
+      console.log(user.happybirthday);
       return res.status(201).json({ user, userposts });
     }
   } catch (err) {
@@ -558,7 +561,7 @@ exports.post_uploadphoto = async function(req, res) {
 exports.post_search_user = [
   body("searchkeyword")
     .trim()
-    .isLength({ min: 3 })
+    .isLength({ min: 2 })
     .withMessage("Search keyword must be at least 3 characters")
     .isLength({ max: 20 })
     .withMessage("Search keywords mustn't exceed 30 characters"),
@@ -569,7 +572,6 @@ exports.post_search_user = [
     }
     try {
       // except current user
-      console.log(req.body.searchkeyword);
       const usersthatmatch = await User.find(
         {
           display_name: {
@@ -577,10 +579,20 @@ exports.post_search_user = [
             $options: "i"
           }
         },
-        "display_name"
-      ).exec();
-      console.log(usersthatmatch);
-      return res.status(200).json({ message: "ok" });
+        "display_name facebook_id profile_pic"
+      )
+        .limit(20)
+        .sort({ date_joined: 1 })
+        .exec();
+      const currentUser = await User.findOne(
+        {
+          facebook_id: req.params.facebookid
+        },
+        "requests_sent"
+      )
+        .populate({ path: "requests_sent", select: ["facebook_id"] })
+        .exec();
+      return res.status(200).json({ usersthatmatch, currentUser });
       //  const usersthatmatch
     } catch (err) {
       return res.status(400).json({ err });
@@ -613,5 +625,58 @@ exports.get_users_bycountry = async function(req, res) {
     return res.status(201).json({ allUsersNotFriends, currentUser });
   } catch (err) {
     return res.status(400).json({ message: err });
+  }
+};
+
+const sortBirthdays = function(a, b) {
+  if (a.birthday <= b.birthday) {
+    return 1;
+  } else {
+    return -1;
+  }
+};
+
+exports.get_birthdays = async function(req, res) {
+  try {
+    const user = await User.findOne(
+      {
+        facebook_id: req.params.facebookid
+      },
+      "friends"
+    )
+      .populate({
+        path: "friends",
+        select: ["facebook_id", "display_name", "profile_pic", "birthday"]
+      })
+      .exec();
+    let friendsbirthdays = [];
+    let futurebirthdays = [];
+    if (user.friends.length > 0) {
+      const today = new Date();
+      const month = today.getMonth();
+      const day = today.getDate();
+      const weekday = DateTime.local(today).weekNumber;
+      user.friends.forEach((friend) => {
+        const friendbirthday = friend.birthday;
+        if (friendbirthday !== undefined) {
+          const friendBMonth = friendbirthday.getMonth();
+          const friendBDay = friendbirthday.getDate();
+          const friendBWeek = DateTime.fromJSDate(friendbirthday).weekNumber;
+          if (friendBMonth === month && friendBDay === day) {
+            friendsbirthdays.push(friend);
+          } else if (
+            friendBDay > day &&
+            friendBWeek >= weekday &&
+            friendBWeek < weekday + 2
+          ) {
+            futurebirthdays.push(friend);
+          }
+        }
+      });
+    }
+    futurebirthdays.sort(sortBirthdays);
+    return res.status(201).json({ friendsbirthdays, futurebirthdays });
+  } catch (err) {
+    return res.status(400).json({ err });
   }
 };
