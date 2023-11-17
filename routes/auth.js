@@ -189,22 +189,99 @@ router.post("/createguestlogin", async function(req, res, next) {
       return next(err);
     }
     try {
-      const newUser = new User({
-        facebook_id: "01111111122222224",
-        display_name: "Fake user II",
+      const guest = new User({
+        facebook_id: "01111111122222221",
+        display_name: "Guest",
         profile_pic: path.join(
           "images",
-          "01111111122222224",
+          "01111111122222221",
           "/profilepic.jpg"
         ),
         guest: true,
         password: hashedpassword
       });
-      const folderProfile = path.join("images", "01111111122222224");
-      const folderPostImages = path.join("images", "01111111122222224/posts");
+      const folderProfile = path.join("images", "01111111122222221");
+      const folderPostImages = path.join("images", "01111111122222221/posts");
       await mkdir(folderProfile);
       await mkdir(folderPostImages);
-      await newUser.save();
+      await guest.save();
+      return res.json({ message: "user created" });
+    } catch (err) {
+      return res.json({ err });
+    }
+  });
+});
+
+// add other users
+router.post("/additionalusers", async function(req, res, next) {
+  bcrypt.hash(req.body.password, 10, async function(err, hashedpassword) {
+    if (err) {
+      return next(err);
+    }
+    try {
+      //john smith
+      const fakeuserjohn = new User({
+        facebook_id: "01111111122222222",
+        display_name: "John Smith",
+        profile_pic: path.join(
+          "images",
+          "01111111122222222",
+          "/profilepic.jpg"
+        ),
+        guest: false,
+        password: hashedpassword
+      });
+      const folderProfilejohn = path.join("images", "01111111122222222");
+      const folderPostImagesjohn = path.join(
+        "images",
+        "01111111122222222/posts"
+      );
+      await mkdir(folderProfilejohn);
+      await mkdir(folderPostImagesjohn);
+      await fakeuserjohn.save();
+
+      //jane doe
+      const fakeuserjane = new User({
+        facebook_id: "01111111122222223",
+        display_name: "Jane Doe",
+        profile_pic: path.join(
+          "images",
+          "01111111122222223",
+          "/profilepic.jpg"
+        ),
+        guest: false,
+        password: hashedpassword
+      });
+      const folderProfilejane = path.join("images", "01111111122222223");
+      const folderPostImagesjane = path.join(
+        "images",
+        "01111111122222223/posts"
+      );
+      await mkdir(folderProfilejane);
+      await mkdir(folderPostImagesjane);
+      await fakeuserjane.save();
+
+      // kate davis
+      const fakeuserkate = new User({
+        facebook_id: "01111111122222223",
+        display_name: "Kate Davis",
+        profile_pic: path.join(
+          "images",
+          "01111111122222224",
+          "/profilepic.jpg"
+        ),
+        guest: false,
+        password: hashedpassword
+      });
+      const folderProfilekate = path.join("images", "01111111122222224");
+      const folderPostImageskate = path.join(
+        "images",
+        "01111111122222224/posts"
+      );
+      await mkdir(folderProfilekate);
+      await mkdir(folderPostImageskate);
+      await fakeuserkate.save();
+
       return res.json({ message: "user created" });
     } catch (err) {
       return res.json({ err });
