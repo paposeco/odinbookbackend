@@ -51,7 +51,8 @@ passport.use(
     {
       clientID: process.env["FACEBOOK_APP_ID"],
       clientSecret: process.env["FACEBOOK_APP_SECRET"],
-      callbackURL: "http://localhost:3000/api/auth/facebook/callback",
+      callbackURL:
+        "https://odinbookbackend-production.up.railway.app/api/auth/facebook/callback",
       profileFields: [
         "id",
         "displayName",
