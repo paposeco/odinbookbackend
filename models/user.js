@@ -16,7 +16,6 @@ const UserSchema = new Schema(
     friends: [{ type: Schema.Types.ObjectId, ref: "User" }],
     requests_sent: [{ type: Schema.Types.ObjectId, ref: "User" }],
     requests_received: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    friends_birthdays: [{ type: Schema.Types.ObjectId, ref: "Birthday" }],
     guest: { type: Boolean, default: false },
     password: { type: String }
   },

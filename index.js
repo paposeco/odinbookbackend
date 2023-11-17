@@ -1,7 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
 import authRouter from "./routes/auth.js";
-import indexRouter from "./routes/index.js";
 import postsRouter from "./routes/posts.js";
 import dotenv from "dotenv/config";
 import userRouter from "./routes/user.js";
@@ -40,7 +39,6 @@ app.use(cors(corsOptions));
 // router
 
 app.use("/", authRouter);
-app.use("/", indexRouter);
 app.use("/", postsRouter);
 app.use("/", userRouter);
 

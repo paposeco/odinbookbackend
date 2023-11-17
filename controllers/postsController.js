@@ -4,6 +4,44 @@ import Comment from "../models/comment";
 import { body, validationResult } from "express-validator";
 import asyncHandler from "express-async-handler";
 import path from "path";
+import he from "he";
+
+const postDecoder = function(post) {
+  post.post_content = he.decode(post.post_content);
+  return post;
+};
+
+const commentDecoder = function(post) {
+  if (post.comments.length === 0) {
+    return post;
+  }
+  let decodedcommentarray = [];
+  post.comments.forEach((comment) => {
+    const commentcontent = he.decode(comment.comment_content);
+    comment.comment_content = commentcontent;
+    decodedcommentarray.push(comment);
+  });
+  post.comments = decodedcommentarray;
+  return post;
+};
+
+const multiplePostDecoder = function(posts) {
+  let decodedpostsarray = [];
+  posts.forEach((post) => {
+    const postcontent = he.decode(post.post_content);
+    post.post_content = postcontent;
+    const decodedcommentspost = commentDecoder(post);
+    decodedpostsarray.push(decodedcommentspost);
+  });
+  return decodedpostsarray;
+};
+
+exports.multiplePostDecoder = multiplePostDecoder;
+
+const singleCommentDecoder = function(comment) {
+  comment.comment_content = he.decode(comment.comment_content);
+  return comment;
+};
 
 exports.newpost_post = [
   body("content")
@@ -16,7 +54,6 @@ exports.newpost_post = [
   async function(req, res, next) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log("error");
       return res.json({ errors: errors.array(), postcontent: req.body });
     }
     try {
@@ -26,10 +63,8 @@ exports.newpost_post = [
       if (!userID) {
         return res.status(400).json({ message: "user not found" });
       }
-
       //save file and save path to DB
 
-      //need to handle url image
       let newpost;
       if (!req.file && !req.body.imageurl) {
         newpost = new Post({
@@ -37,7 +72,6 @@ exports.newpost_post = [
           post_content: req.body.content
         });
       } else if (!req.file && req.body.imageurl) {
-        // get url and download file to server? no. it should be on frontend.
         newpost = new Post({
           author: userID._id,
           post_content: req.body.content,
@@ -107,7 +141,8 @@ exports.newcomment = [
         path: "author",
         select: ["facebook_id", "display_name", "profile_pic"]
       });
-      return res.status(200).json({ newcommentpopulated });
+      const decodedcomment = singleCommentDecoder(newcommentpopulated);
+      return res.status(200).json({ newcommentpopulated: decodedcomment });
     } catch (err) {
       return res.status(400).json({ message: err });
     }
@@ -134,19 +169,15 @@ exports.get_post = async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: "post not found" });
     } else {
-      return res.json({ post });
+      const decodedpostcontent = postDecoder(post);
+      const decodedpostcomments = commentDecoder(decodedpostcontent);
+      return res.json({ post: decodedpostcomments });
     }
   } catch (err) {
     return res.status(404).json({ message: err });
   }
 };
 
-// when fetching posts, check if current user liked it, so it shows and so the user can unlike it
-
-// if the user is very prolific, all he'll see are his posts
-
-//load more with scroll ?
-// timeline needs work and need to implement guest login
 exports.timeline = async function(req, res) {
   try {
     const currentUser = await User.findOne({
@@ -178,7 +209,8 @@ exports.timeline = async function(req, res) {
         })
         .populate({ path: "likes", select: ["facebook_id", "display_name"] })
         .exec();
-      return res.json({ timelinePosts });
+      const decodedposts = multiplePostDecoder(timelinePosts);
+      return res.json({ timelinePosts: decodedposts });
     }
   } catch (err) {
     return res.status(404).json({ message: "cant load content" });

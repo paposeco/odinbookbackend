@@ -119,6 +119,7 @@ passport.use(
         if (userFacebookId === tokenFacebookId) {
           return done(null, true);
         } else {
+          console.log("tokens don't match");
           return done(null, false);
         }
       }
@@ -173,7 +174,7 @@ router.post("/guestlogin", (req, res, next) => {
         return;
       }
       req.user.jwtoken = jwt.sign({ user }, process.env["JWTSECRET"]);
-      return res.json({
+      return res.status(200).json({
         token: req.user.jwtoken,
         facebookid: req.user.facebook_id
       });
@@ -205,7 +206,6 @@ router.post("/createguestlogin", async function(req, res, next) {
       await mkdir(folderPostImages);
       await newUser.save();
       return res.json({ message: "user created" });
-      //return res.status(400).json({ message: "guest creation not available" });
     } catch (err) {
       return res.json({ err });
     }
@@ -223,11 +223,8 @@ router.get(
     // successfully logged in
     res.cookie("token", req.user.jwtoken);
     res.cookie("facebookid", req.user.profile.id);
-    // I can just send the token and profile info on a cookie and not send the token on the request
     res.redirect(process.env["REACT_APP_URL"] + "loggedin");
   }
 );
 
 export default router;
-
-// remove request sent and received once friendship is accepted

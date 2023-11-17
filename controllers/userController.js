@@ -6,6 +6,7 @@ import { body, validationResult } from "express-validator";
 import { unlink } from "node:fs";
 import path from "path";
 import { DateTime } from "luxon";
+import postsController from "./postsController";
 
 exports.check_friend_status = async function(req, res, next) {
   const currentUser = req.params.facebookid;
@@ -15,11 +16,6 @@ exports.check_friend_status = async function(req, res, next) {
     const currentUserDBId = await User.findOne({
       facebook_id: currentUser
     }).exec();
-
-    /* const friendDBId = await User.findOne({
-     *   facebook_id: friendId,
-     *   friends: currentUserDBId
-     * }).exec(); */
     const friendDBId = await User.findOne({
       facebook_id: friendId
     }).exec();
@@ -28,12 +24,18 @@ exports.check_friend_status = async function(req, res, next) {
     if (friends) {
       return res.status(201).json({ friends: true, requestsent: false });
     } else {
-      const friendrequestexists = currentUserDBId.requests_sent.includes(
+      const friendrequestsentexists = currentUserDBId.requests_sent.includes(
         friendDBId._id
       );
+      const friendrequestreceivedexists =
+        currentUserDBId.requests_received.includes(friendDBId._id);
       return res
         .status(201)
-        .json({ friends: false, requestsent: friendrequestexists });
+        .json({
+          friends: false,
+          requestsent: friendrequestsentexists,
+          requestreceived: friendrequestreceivedexists
+        });
     }
   } catch (err) {
     return res.status(404).json({ err });
@@ -41,7 +43,6 @@ exports.check_friend_status = async function(req, res, next) {
 };
 
 exports.add_friend = asyncHandler(async (req, res, next) => {
-  // add friend buttons needs to have the facebookid
   const currentUser = req.params.facebookid;
   const friendId = req.params.friendid;
 
@@ -66,7 +67,6 @@ exports.add_friend = asyncHandler(async (req, res, next) => {
   }
 });
 
-// post
 exports.remove_friend = async function(req, res, next) {
   const currentUser = req.params.facebookid;
   const friendId = req.params.friendid;
@@ -95,7 +95,6 @@ exports.remove_friend = async function(req, res, next) {
   }
 };
 
-// post
 exports.accept_friend_request = async function(req, res, next) {
   const currentUser = req.params.facebookid;
   const friendId = req.params.friendid;
@@ -168,19 +167,19 @@ exports.get_currentuserprofile = async function(req, res) {
       .populate({ path: "likes", select: ["facebook_id", "display_name"] })
       .exec();
 
+    const decodedPosts = postsController.multiplePostDecoder(userposts);
     if (!user) {
       return res.status(404).json({ message: "user not found ?" });
     } else {
       console.log(user);
-      console.log(user.happybirthday);
-      return res.status(201).json({ user, userposts });
+      console.log(decodedPosts);
+      return res.status(201).json({ user, userposts: decodedPosts });
     }
   } catch (err) {
     return res.status(404).json({ message: "db error" });
   }
 };
 
-//unsure if I should limit the information visible to users
 exports.get_userprofile = async function(req, res) {
   try {
     const otherUser = await User.findOne({ facebook_id: req.params.userid })
@@ -221,6 +220,7 @@ exports.get_userprofile = async function(req, res) {
         })
         .populate({ path: "likes", select: ["facebook_id", "display_name"] })
         .exec();
+      const decodedPosts = postsController.multiplePostDecoder(otherUserPosts);
       return res.status(201).json({
         display_name: otherUser.display_name,
         facebook_id: otherUser.facebook_id,
@@ -230,12 +230,12 @@ exports.get_userprofile = async function(req, res) {
           otherUser.country === undefined
             ? undefined
             : otherUser.country.country,
-        posts: otherUserPosts,
-        friends: otherUser.friends.length
+        posts: decodedPosts,
+        friends: otherUser.friends.length,
+        gender: otherUser.gender
       });
     }
   } catch (err) {
-    console.log(err);
     return res.status(404).json({ message: "user not found" });
   }
 };
@@ -314,9 +314,6 @@ exports.get_users = async function(req, res) {
   }
 };
 
-// need to format birthday on frontend as Date
-// gender must be formated on frontend too
-
 const formatDate = function(dbdate) {
   if (!dbdate) {
     return undefined;
@@ -330,7 +327,7 @@ exports.get_update_profile = async function(req, res) {
   try {
     const userprofile = await User.findOne(
       { facebook_id: req.params.facebookid },
-      "display_name birthday gender country profile_pic requests_received requests_sent"
+      "display_name birthday gender country profile_pic requests_received requests_sent friends"
     )
       .populate({ path: "country", select: ["country"] })
       .populate({
@@ -341,8 +338,30 @@ exports.get_update_profile = async function(req, res) {
         path: "requests_sent",
         select: ["display_name", "facebook_id", "profile_pic"]
       })
+      .populate({
+        path: "friends",
+        select: ["facebook_id", "display_name", "profile_pic", "birthday"]
+      })
       .exec();
     const formattedbirthday = formatDate(userprofile.date_birthday);
+    // only notifies user of today's birthdays
+    let friendsbirthdays = [];
+    if (userprofile.friends.length > 0) {
+      const today = new Date();
+      const month = today.getMonth();
+      const day = today.getDate();
+      userprofile.friends.forEach((friend) => {
+        const friendbirthday = friend.birthday;
+        if (friendbirthday !== undefined) {
+          const friendBMonth = friendbirthday.getMonth();
+          const friendBDay = friendbirthday.getDate();
+          if (friendBMonth === month && friendBDay === day) {
+            friendsbirthdays.push(friend);
+          }
+        }
+      });
+    }
+
     return res.json({
       userprofile: {
         display_name: userprofile.display_name,
@@ -355,11 +374,11 @@ exports.get_update_profile = async function(req, res) {
             : userprofile.country.country,
         profile_pic: userprofile.profile_pic,
         requests_received: userprofile.requests_received,
-        requests_sent: userprofile.requests_sent
+        requests_sent: userprofile.requests_sent,
+        birthdaystoday: friendsbirthdays
       }
     });
   } catch (err) {
-    console.log(err);
     return res.status(400).json({ message: "something went wrong" });
   }
 };
@@ -588,12 +607,11 @@ exports.post_search_user = [
         {
           facebook_id: req.params.facebookid
         },
-        "requests_sent"
+        "requests_sent friends"
       )
         .populate({ path: "requests_sent", select: ["facebook_id"] })
         .exec();
       return res.status(200).json({ usersthatmatch, currentUser });
-      //  const usersthatmatch
     } catch (err) {
       return res.status(400).json({ err });
     }
@@ -615,7 +633,11 @@ exports.get_users_bycountry = async function(req, res) {
     const countrycode = req.params.countrycode;
     const country = await Country.findOne({ country: countrycode }).exec();
     const allUsersNotFriends = await User.find(
-      { country: country._id, _id: { $ne: currentUser._id } },
+      {
+        country: country._id,
+        friends: { $nin: currentUser._id },
+        _id: { $ne: currentUser._id }
+      },
       "display_name facebook_id profile_pic"
     )
       .limit(20)
