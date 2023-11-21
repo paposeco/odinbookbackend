@@ -293,7 +293,7 @@ router.post("/additionalusers", async function(req, res, next) {
 router.get(
   "/api/auth/facebook/callback",
   passport.authenticate("facebook", {
-    failureRedirect: process.env["REACT_APP_URL"] + "login",
+    failureRedirect: process.env["REACT_APP_URL"] + "/login",
     failureMessage: true,
     session: false
   }),
@@ -301,7 +301,7 @@ router.get(
     // successfully logged in
     res.cookie("token", req.user.jwtoken);
     res.cookie("facebookid", req.user.profile.id);
-    res.redirect(process.env["REACT_APP_URL"] + "/loggedin");
+    res.redirect(process.env["REACT_APP_URL"]);
   }
 );
 
