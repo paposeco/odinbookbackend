@@ -64,7 +64,6 @@ passport.use(
     async function(accessToken, refreshToken, profile, cb) {
       // by returning a user on the callback, user is accessible on req.user
       try {
-        console.log("inside facebook");
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
@@ -299,12 +298,10 @@ router.get(
     session: false
   }),
   (req, res) => {
-    console.log("req");
-    console.log(req);
     // successfully logged in
     res.cookie("token", req.user.jwtoken);
     res.cookie("facebookid", req.user.profile.id);
-    res.redirect(process.env["REACT_APP_URL" + "/loggedin"]);
+    res.redirect(process.env["REACT_APP_URL"] + "/loggedin");
   }
 );
 
