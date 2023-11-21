@@ -301,7 +301,8 @@ router.get(
     // successfully logged in
     res.cookie("token", req.user.jwtoken);
     res.cookie("facebookid", req.user.profile.id);
-    res.redirect(process.env["REACT_APP_URL"] + "/loggedin");
+    const string = encodeURIComponent("help me");
+    res.redirect(process.env["REACT_APP_URL"] + "/loggedin/?valid=" + string);
   }
 );
 
