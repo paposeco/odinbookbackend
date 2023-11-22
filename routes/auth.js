@@ -299,11 +299,16 @@ router.get(
   }),
   (req, res) => {
     // successfully logged in
-    res.cookie("token", req.user.jwtoken);
-    res.cookie("facebookid", req.user.profile.id);
-    const string = encodeURIComponent("help me");
-    res.redirect(process.env["REACT_APP_URL"] + "/loggedin");
-    /* res.redirect(process.env["REACT_APP_URL"] + "/loggedin/?valid=" + string); */
+    const tokenstring = encodeURIComponent(req.user.jwtoken);
+    const facebookstring = encodeURIComponent(req.user.profile.id);
+    //res.redirect(process.env["REACT_APP_URL"] + "loggedin");
+    res.redirect(
+      process.env["REACT_APP_URL"] +
+      "/loggedin/valid?token=" +
+      tokenstring +
+      "&facebookid=" +
+      facebookstring
+    );
   }
 );
 
