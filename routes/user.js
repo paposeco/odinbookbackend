@@ -14,6 +14,9 @@ const storage = multer.diskStorage({
         { facebook_id: req.params.facebookid },
         "profile_pic"
       );
+      console.log("inside mutler storage");
+      console.log(currentProfile);
+
       if (currentProfile.profile_pic.includes("new")) {
         cb(null, "profilepic");
       } else {

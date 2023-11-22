@@ -29,13 +29,11 @@ exports.check_friend_status = async function(req, res, next) {
       );
       const friendrequestreceivedexists =
         currentUserDBId.requests_received.includes(friendDBId._id);
-      return res
-        .status(201)
-        .json({
-          friends: false,
-          requestsent: friendrequestsentexists,
-          requestreceived: friendrequestreceivedexists
-        });
+      return res.status(201).json({
+        friends: false,
+        requestsent: friendrequestsentexists,
+        requestreceived: friendrequestreceivedexists
+      });
     }
   } catch (err) {
     return res.status(404).json({ err });
@@ -562,8 +560,12 @@ exports.post_uploadphoto = async function(req, res) {
       "profile_pic"
     ).exec();
 
+    console.log("unlink");
     unlink(path.join(__dirname, "..", userprofilepic.profile_pic), (err) => {
-      if (err) throw err;
+      if (err) {
+        console.log(err);
+        throw err;
+      }
     });
 
     await User.findByIdAndUpdate(userprofilepic._id, {
