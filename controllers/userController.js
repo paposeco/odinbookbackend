@@ -555,6 +555,7 @@ exports.post_update_profile = [
 
 exports.post_uploadphoto = async function(req, res) {
   try {
+    console.log("inside  upload photo");
     const userprofilepic = await User.findOne(
       { facebook_id: req.params.facebookid },
       "profile_pic"

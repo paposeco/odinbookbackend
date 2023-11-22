@@ -71,6 +71,9 @@ router.post(
   "/:facebookid/uploadit",
   passport.authenticate("jwt", { session: false }),
   uploadPhoto.single("newprofilepic"),
+  function(req, res, next) {
+    console.log(req.files);
+  },
   user_controller.post_uploadphoto
 );
 
