@@ -67,11 +67,8 @@ router.post(
         console.log(err);
         // An unknown error occurred when uploading.
       }
-      console.log("uploaded correctly");
-      // Everything went fine.
     });
   },
-
   (req, res, next) => {
     console.log("ended uplaod");
     next();

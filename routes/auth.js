@@ -34,8 +34,10 @@ const downloadFile = async function(url, dest, facebookid) {
       facebookid,
       "/posts"
     );
-    await mkdir(folderProfile);
-    await mkdir(folderPostImages);
+    const folderProf = await mkdir(folderProfile);
+    const folderPostImg = await mkdir(folderPostImages);
+    console.log(folderProf);
+    console.log(folderPostImg);
     // there is a bug on the Facebook api that is preventing the profile photos from being downloaded
     /*
      *     const file = fs.createWriteStream("images/" + facebookid + dest);
@@ -51,6 +53,7 @@ const downloadFile = async function(url, dest, facebookid) {
      *         });
      *     }); */
   } catch (err) {
+    console.log("error creating folders");
     console.error(err.message);
   }
 };
