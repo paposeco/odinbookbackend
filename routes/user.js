@@ -10,10 +10,12 @@ const storage = multer.diskStorage({
   },
   filename: async function(req, file, cb) {
     try {
+      console.log("storage");
       const currentProfile = await User.findOne(
         { facebook_id: req.params.facebookid },
         "profile_pic"
       );
+      console.log(currentProfile);
       if (currentProfile.profile_pic.includes("new")) {
         cb(null, "profilepic");
       } else {
@@ -24,7 +26,7 @@ const storage = multer.diskStorage({
     }
   }
 });
-const uploadPhoto = multer({ storage: storage }).single("newprofilepic");
+const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -67,20 +69,28 @@ router.post(
 router.post(
   "/:facebookid/uploadit",
   passport.authenticate("jwt", { session: false }),
-  function(req, res) {
-    uploadPhoto(req, res, function(err) {
-      if (err instanceof multer.MulterError) {
-        console.log("multer error");
-        console.log(err);
-      } else if (err) {
-        console.log("other error");
-        console.log(err);
-      }
-      console.log("this is fine");
-    });
-  },
+  uploadPhoto.single("newprofilepic"),
   user_controller.post_uploadphoto
 );
+
+/* router.post(
+ *   "/:facebookid/uploadit",
+ *   passport.authenticate("jwt", { session: false }),
+ *   function(req, res) {
+ *     uploadPhoto(req, res, function(err) {
+ *       if (err instanceof multer.MulterError) {
+ *         console.log("multer error");
+ *         console.log(err);
+ *       } else if (err) {
+ *         console.log("other error");
+ *         console.log(err);
+ *       }
+ *       console.log("this is fine");
+ *     });
+ *   },
+ *   user_controller.post_uploadphoto
+ * );
+ *  */
 
 /* uploadPhoto.single("newprofilepic"), */
 
