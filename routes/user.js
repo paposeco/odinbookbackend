@@ -6,7 +6,7 @@ import User from "../models/user";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, `app/public/images/${req.params.facebookid}`);
+    cb(null, `images/${req.params.facebookid}`);
   },
   filename: function(req, file, cb) {
     cb(null, "newprofilepic");
