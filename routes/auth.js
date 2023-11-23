@@ -34,6 +34,8 @@ const downloadFile = async function(url, dest, facebookid) {
       facebookid,
       "/posts"
     );
+    console.log(folderProfile);
+    console.log(folderPostImages);
     const folderProf = await mkdir(folderProfile);
     const folderPostImg = await mkdir(folderPostImages);
     console.log(folderProf);
