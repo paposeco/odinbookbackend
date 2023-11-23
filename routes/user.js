@@ -13,6 +13,8 @@ const storage = multer.diskStorage({
   }
 });
 
+const upload = multer({ storage: storage }).single("newprofilepic");
+
 const router = express.Router();
 
 router.post(
@@ -51,10 +53,12 @@ router.post(
   user_controller.post_update_profile
 );
 
-const upload = multer({ storage: storage }).single("newprofilepic");
-
 router.post(
   "/:facebookid/uploadit",
+  (req, res, next) => {
+    console.log("inside uploadit");
+    next();
+  },
   passport.authenticate("jwt", { session: false }),
   function(req, res) {
     upload(req, res, function(err) {
