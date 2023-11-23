@@ -66,12 +66,14 @@ passport.use(
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
-          downloadFile(profile.photos[0].value, "/profilepic", profile.id);
+          console.log(profile.photos[0].value);
+          console.log(profile);
+          downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
           // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
             "images",
             profile.id,
-            "/profilepic"
+            "/profilepic.jpg"
           );
           const newUser = new User({
             facebook_id: profile.id,
