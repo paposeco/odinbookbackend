@@ -19,29 +19,37 @@ const router = express.Router();
 // create folder for facebookprofile and save profile picture
 const downloadFile = async function(url, dest, facebookid) {
   try {
-    const folderProfile = path.join(__dirname, "..", "/images", facebookid);
+    const folderProfile = path.join(
+      __dirname,
+      "..",
+      "/public",
+      "/images",
+      facebookid
+    );
     const folderPostImages = path.join(
       __dirname,
       "..",
+      "/public",
       "/images",
       facebookid,
       "/posts"
     );
     await mkdir(folderProfile);
     await mkdir(folderPostImages);
-
-    const file = fs.createWriteStream("images/" + facebookid + dest);
-    https.get(url, (res) => {
-      res.pipe(file);
-      file
-        .on("finish", function() {
-          console.log("finished download");
-          file.close();
-        })
-        .on("error", function() {
-          fs.unlink("images/" + facebookid + dest);
-        });
-    });
+    // there is a bug on the Facebook api that is preventing the profile photos from being downloaded
+    /*
+     *     const file = fs.createWriteStream("images/" + facebookid + dest);
+     *     https.get(url, (res) => {
+     *       res.pipe(file);
+     *       file
+     *         .on("finish", function() {
+     *           console.log("finished download");
+     *           file.close();
+     *         })
+     *         .on("error", function() {
+     *           fs.unlink("images/" + facebookid + dest);
+     *         });
+     *     }); */
   } catch (err) {
     console.error(err.message);
   }
@@ -67,18 +75,12 @@ passport.use(
       try {
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
-          console.log(profile.photos[0].value);
-          console.log(profile._json);
-          console.log(profile._json.picture);
-          console.log(accessToken);
-          const picturegraph = `https://graph.facebook.com/${profile.id}/picture?width=200&height=200&access_token=${accessToken}`;
-          console.log(picturegraph);
+          // there is a bug on the Facebook api that is preventing the profile photos from being downloaded
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
-          // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
+            "public",
             "images",
-            profile.id,
-            "/profilepic.jpg"
+            "defaultimage.jpg"
           );
           const newUser = new User({
             facebook_id: profile.id,
@@ -200,16 +202,16 @@ router.post("/createguestlogin", async function(req, res, next) {
       const guest = new User({
         facebook_id: "01111111122222221",
         display_name: "Guest",
-        profile_pic: path.join(
-          "images",
-          "01111111122222221",
-          "/profilepic.jpg"
-        ),
+        profile_pic: path.join("public", "images", "defaultimage.jpg"),
         guest: true,
         password: hashedpassword
       });
-      const folderProfile = path.join("images", "01111111122222221");
-      const folderPostImages = path.join("images", "01111111122222221/posts");
+      const folderProfile = path.join("public", "images", "01111111122222221");
+      const folderPostImages = path.join(
+        "public",
+        "images",
+        "01111111122222221/posts"
+      );
       await mkdir(folderProfile);
       await mkdir(folderPostImages);
       await guest.save();
@@ -232,15 +234,21 @@ router.post("/additionalusers", async function(req, res, next) {
         facebook_id: "01111111122222222",
         display_name: "John Smith",
         profile_pic: path.join(
+          "public",
           "images",
           "01111111122222222",
-          "/profilepic.jpg"
+          "/defaultimage.jpg"
         ),
         guest: false,
         password: hashedpassword
       });
-      const folderProfilejohn = path.join("images", "01111111122222222");
+      const folderProfilejohn = path.join(
+        "public",
+        "images",
+        "01111111122222222"
+      );
       const folderPostImagesjohn = path.join(
+        "public",
         "images",
         "01111111122222222/posts"
       );
@@ -252,16 +260,17 @@ router.post("/additionalusers", async function(req, res, next) {
       const fakeuserjane = new User({
         facebook_id: "01111111122222223",
         display_name: "Jane Doe",
-        profile_pic: path.join(
-          "images",
-          "01111111122222223",
-          "/profilepic.jpg"
-        ),
+        profile_pic: path.join("public", "images", "defaultimage.jpg"),
         guest: false,
         password: hashedpassword
       });
-      const folderProfilejane = path.join("images", "01111111122222223");
+      const folderProfilejane = path.join(
+        "public",
+        "images",
+        "01111111122222223"
+      );
       const folderPostImagesjane = path.join(
+        "public",
         "images",
         "01111111122222223/posts"
       );
@@ -273,16 +282,17 @@ router.post("/additionalusers", async function(req, res, next) {
       const fakeuserkate = new User({
         facebook_id: "01111111122222223",
         display_name: "Kate Davis",
-        profile_pic: path.join(
-          "images",
-          "01111111122222224",
-          "/profilepic.jpg"
-        ),
+        profile_pic: path.join("public", "images", "defaultimage.jpg"),
         guest: false,
         password: hashedpassword
       });
-      const folderProfilekate = path.join("images", "01111111122222224");
+      const folderProfilekate = path.join(
+        "public",
+        "images",
+        "01111111122222224"
+      );
       const folderPostImageskate = path.join(
+        "public",
         "images",
         "01111111122222224/posts"
       );

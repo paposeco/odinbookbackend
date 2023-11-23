@@ -6,7 +6,7 @@ import User from "../models/user";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, `images/${req.params.facebookid}`);
+    cb(null, `public/images/${req.params.facebookid}`);
   },
   filename: async function(req, file, cb) {
     try {
@@ -14,9 +14,6 @@ const storage = multer.diskStorage({
         { facebook_id: req.params.facebookid },
         "profile_pic"
       );
-      console.log("inside mutler storage");
-      console.log(currentProfile);
-
       if (currentProfile.profile_pic.includes("new")) {
         cb(null, "profilepic");
       } else {

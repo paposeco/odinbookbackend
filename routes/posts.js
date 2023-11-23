@@ -5,7 +5,7 @@ import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, `images/${req.params.facebookid}/posts`);
+    cb(null, `public/images/${req.params.facebookid}/posts`);
   }
 });
 const uploadPhoto = multer({ storage: storage });
