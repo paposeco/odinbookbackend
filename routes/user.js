@@ -56,19 +56,22 @@ const upload = multer({ storage: storage }).single("newprofilepic");
 router.post(
   "/:facebookid/uploadit",
   passport.authenticate("jwt", { session: false }),
-  upload(req, res, function(err) {
-    if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading.
-      console.log("multer");
-      console.log(err);
-    } else if (err) {
-      console.log("other");
-      console.log(err);
-      // An unknown error occurred when uploading.
-    }
-    console.log("uploaded correctly");
-    // Everything went fine.
-  }),
+  function(req, res) {
+    upload(req, res, function(err) {
+      if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        console.log("multer");
+        console.log(err);
+      } else if (err) {
+        console.log("other");
+        console.log(err);
+        // An unknown error occurred when uploading.
+      }
+      console.log("uploaded correctly");
+      // Everything went fine.
+    });
+  },
+
   (req, res, next) => {
     console.log("ended uplaod");
     next();
