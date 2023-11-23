@@ -54,7 +54,13 @@ passport.use(
       clientSecret: process.env["FACEBOOK_APP_SECRET"],
       callbackURL:
         "https://odinbookbackend-production.up.railway.app/api/auth/facebook/callback",
-      profileFields: ["id", "displayName", "picture", "birthday", "gender"]
+      profileFields: [
+        "id",
+        "displayName",
+        "picture.type(large)",
+        "birthday",
+        "gender"
+      ]
     },
     async function(accessToken, refreshToken, profile, cb) {
       // by returning a user on the callback, user is accessible on req.user
