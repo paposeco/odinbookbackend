@@ -8,25 +8,10 @@ const storage = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, `public/images/${req.params.facebookid}`);
   },
-  filename: async function(req, file, cb) {
-    try {
-      console.log("storage");
-      const currentProfile = await User.findOne(
-        { facebook_id: req.params.facebookid },
-        "profile_pic"
-      );
-      console.log(currentProfile);
-      if (currentProfile.profile_pic.includes("new")) {
-        cb(null, "profilepic");
-      } else {
-        cb(null, "newprofilepic");
-      }
-    } catch (err) {
-      cb(console.error(error));
-    }
+  filename: function(req, file, cb) {
+    cb(null, "newprofilepic");
   }
 });
-const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -66,10 +51,28 @@ router.post(
   user_controller.post_update_profile
 );
 
+const upload = multer({ storage: storage }).single("newprofilepic");
+
 router.post(
   "/:facebookid/uploadit",
   passport.authenticate("jwt", { session: false }),
-  uploadPhoto.single("newprofilepic"),
+  upload(req, res, function(err) {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading.
+      console.log("multer");
+      console.log(err);
+    } else if (err) {
+      console.log("other");
+      console.log(err);
+      // An unknown error occurred when uploading.
+    }
+    console.log("uploaded correctly");
+    // Everything went fine.
+  }),
+  (req, res, next) => {
+    console.log("ended uplaod");
+    next();
+  },
   user_controller.post_uploadphoto
 );
 
