@@ -70,6 +70,9 @@ passport.use(
           console.log(profile.photos[0].value);
           console.log(profile._json);
           console.log(profile._json.picture);
+          console.log(accessToken);
+          const picturegraph = `https://graph.facebook.com/${profile.id}/picture?width=200&height=200&access_token=${accessToken}`;
+          console.log(picturegraph);
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
           // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
