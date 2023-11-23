@@ -34,7 +34,8 @@ const limiter = RateLimit({
 // compress routes
 app.use(compression());
 
-app.use("/images", express.static("./images"));
+app.use("/images", express.static(path.join(__dirname, "images")));
+//app.use(express.static(path.join(__dirname, "images")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
