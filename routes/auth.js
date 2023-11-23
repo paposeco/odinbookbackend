@@ -35,6 +35,7 @@ const downloadFile = async function(url, dest, facebookid) {
       res.pipe(file);
       file
         .on("finish", function() {
+          console.log("finished download");
           file.close();
         })
         .on("error", function() {
@@ -67,7 +68,8 @@ passport.use(
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
           console.log(profile.photos[0].value);
-          console.log(profile);
+          console.log(profile._json);
+          console.log(profile._json.picture);
           downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
           // should only save the profilepiclocation, if the download was successful
           const profilePicLocation = path.join(
