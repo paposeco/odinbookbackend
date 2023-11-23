@@ -21,12 +21,14 @@ const downloadFile = async function(url, dest, facebookid) {
   try {
     const folderProfile = path.join(
       __dirname,
+      "..",
       "/public",
       "/images",
       facebookid
     );
     const folderPostImages = path.join(
       __dirname,
+      "..",
       "/public",
       "/images",
       facebookid,
