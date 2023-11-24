@@ -6,12 +6,21 @@ import User from "../models/user";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, `images/${req.params.facebookid}`);
+    cb(null, `/public/multertest`);
   },
   filename: function(req, file, cb) {
     cb(null, "newprofilepic");
   }
 });
+
+/* const storage = multer.diskStorage({
+ *   destination: function(req, file, cb) {
+ *     cb(null, `.public/images/${req.params.facebookid}`);
+ *   },
+ *   filename: function(req, file, cb) {
+ *     cb(null, "newprofilepic");
+ *   }
+ * }); */
 
 const upload = multer({ storage: storage }).single("newprofilepic");
 
