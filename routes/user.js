@@ -9,22 +9,9 @@ const storage = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, `public/images/${req.params.facebookid}`);
   },
-  filename: async function(req, file, cb) {
-    console.log("inside try");
-    try {
-      const currentProfile = await User.findOne(
-        { facebook_id: req.params.facebookid },
-        "profile_pic"
-      );
-      console.log(currentProfile);
-      if (currentProfile.profile_pic.includes("new")) {
-        cb(null, "profilepic");
-      } else {
-        cb(null, "newprofilepic");
-      }
-    } catch (err) {
-      cb(console.error(error));
-    }
+  filename: function(req, file, cb) {
+    console.log(req.params.imagename);
+    cb(null, req.params.imagename);
   }
 });
 
@@ -69,7 +56,7 @@ router.post(
 );
 
 router.post(
-  "/:facebookid/uploadit",
+  "/:facebookid/uploadit/:imagename",
   passport.authenticate("jwt", { session: false }),
   uploadPhoto.single("newprofilepic"),
   user_controller.post_uploadphoto
