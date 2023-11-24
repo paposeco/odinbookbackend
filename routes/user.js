@@ -10,11 +10,13 @@ const storage = multer.diskStorage({
     cb(null, `public/images/${req.params.facebookid}`);
   },
   filename: async function(req, file, cb) {
+    console.log("inside try");
     try {
       const currentProfile = await User.findOne(
         { facebook_id: req.params.facebookid },
         "profile_pic"
       );
+      console.log(currentProfile);
       if (currentProfile.profile_pic.includes("new")) {
         cb(null, "profilepic");
       } else {

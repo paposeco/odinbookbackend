@@ -558,6 +558,7 @@ exports.post_uploadphoto = async function(req, res) {
       "profile_pic"
     ).exec();
 
+    console.log("inside profile upload");
     await User.findByIdAndUpdate(userprofilepic._id, {
       profile_pic: req.file.path
     }).exec();
