@@ -106,6 +106,8 @@ exports.accept_friend_request = async function(req, res, next) {
       const err = new Error("User not found");
       return res.status(404).json({ message: err });
     } else {
+      console.log(currentUserDBId.requests_received);
+      console.log(currentUserDBId.requests_received.includes(friendDBId._id));
       if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
 
