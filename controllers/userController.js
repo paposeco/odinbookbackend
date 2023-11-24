@@ -116,7 +116,7 @@ exports.accept_friend_request = async function(req, res, next) {
         }).exec();
 
         await User.findByIdAndUpdate(currentUserDBId._id, {
-          $pull: { requests_received: friendDBId._id }
+          $pull: { requests_received: { _id: friendDBId._id } }
         }).exec();
 
         await User.findByIdAndUpdate(friendDBId._id, {
@@ -124,7 +124,7 @@ exports.accept_friend_request = async function(req, res, next) {
         }).exec();
 
         await User.findByIdAndUpdate(friendDBId._id, {
-          $pull: { requests_sent: currentUserDBId._id }
+          $pull: { requests_sent: { _id: currentUserDBId._id } }
         }).exec();
       } else {
         //remove from request received on friend and from requests sent from user
