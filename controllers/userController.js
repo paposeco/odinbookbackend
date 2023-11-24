@@ -553,21 +553,20 @@ exports.post_update_profile = [
 
 exports.post_uploadphoto = async function(req, res) {
   try {
-    console.log("inside  upload photo");
     const userprofilepic = await User.findOne(
       { facebook_id: req.params.facebookid },
       "profile_pic"
     ).exec();
 
-    if (!userprofilepic.profile_pic.includes("defaultimage")) {
-      console.log("unlink");
-      unlink(path.join(__dirname, "..", userprofilepic.profile_pic), (err) => {
-        if (err) {
-          console.log(err);
-          throw err;
-        }
-      });
-    }
+    /* if (!userprofilepic.profile_pic.includes("defaultimage")) {
+     *   console.log("unlink");
+     *   unlink(path.join(__dirname, "..", userprofilepic.profile_pic), (err) => {
+     *     if (err) {
+     *       console.log(err);
+     *       throw err;
+     *     }
+     *   });
+     * } */
     await User.findByIdAndUpdate(userprofilepic._id, {
       profile_pic: req.file.path
     }).exec();
