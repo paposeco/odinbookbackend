@@ -7,7 +7,6 @@ import process from "process";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    console.log(req.params.facebookid);
     cb(null, `public/images/${req.params.facebookid}`);
   },
   filename: function(req, file, cb) {
@@ -15,16 +14,7 @@ const storage = multer.diskStorage({
   }
 });
 
-/* const storage = multer.diskStorage({
- *   destination: function(req, file, cb) {
- *     cb(null, `.public/images/${req.params.facebookid}`);
- *   },
- *   filename: function(req, file, cb) {
- *     cb(null, "newprofilepic");
- *   }
- * }); */
-
-const upload = multer({ storage: storage }).single("newprofilepic");
+const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -66,51 +56,10 @@ router.post(
 
 router.post(
   "/:facebookid/uploadit",
-  (req, res, next) => {
-    console.log("inside uploadit");
-    next();
-  },
   passport.authenticate("jwt", { session: false }),
-  function(req, res) {
-    upload(req, res, function(err) {
-      if (err instanceof multer.MulterError) {
-        // A Multer error occurred when uploading.
-        console.log("multer");
-        console.log(err);
-      } else if (err) {
-        console.log("other");
-        console.log(err);
-        // An unknown error occurred when uploading.
-      }
-    });
-  },
-  (req, res, next) => {
-    console.log("ended uplaod");
-    next();
-  },
+  uploadPhoto.single("newprofilepic"),
   user_controller.post_uploadphoto
 );
-
-/* router.post(
- *   "/:facebookid/uploadit",
- *   passport.authenticate("jwt", { session: false }),
- *   function(req, res) {
- *     uploadPhoto(req, res, function(err) {
- *       if (err instanceof multer.MulterError) {
- *         console.log("multer error");
- *         console.log(err);
- *       } else if (err) {
- *         console.log("other error");
- *         console.log(err);
- *       }
- *       console.log("this is fine");
- *     });
- *   },
- *   user_controller.post_uploadphoto
- * );
- *  */
-
-/* uploadPhoto.single("newprofilepic"), */
 
 router.post(
   "/:facebookid/searchuser",
