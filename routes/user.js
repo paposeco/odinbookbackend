@@ -7,8 +7,8 @@ import process from "process";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    console.log(process.cwd());
-    cb(null, `public/multertest`);
+    console.log(req.params.facebookid);
+    cb(null, `public/images/${req.params.facebookid}`);
   },
   filename: function(req, file, cb) {
     cb(null, "newprofilepic");

@@ -41,19 +41,19 @@ const downloadFile = async function(url, dest, facebookid) {
     console.log(folderProf);
     console.log(folderPostImg);
     // there is a bug on the Facebook api that is preventing the profile photos from being downloaded
-    /*
-     *     const file = fs.createWriteStream("images/" + facebookid + dest);
-     *     https.get(url, (res) => {
-     *       res.pipe(file);
-     *       file
-     *         .on("finish", function() {
-     *           console.log("finished download");
-     *           file.close();
-     *         })
-     *         .on("error", function() {
-     *           fs.unlink("images/" + facebookid + dest);
-     *         });
-     *     }); */
+
+    const file = fs.createWriteStream("public/images/" + facebookid + dest);
+    https.get(url, (res) => {
+      res.pipe(file);
+      file
+        .on("finish", function() {
+          console.log("finished download");
+          file.close();
+        })
+        .on("error", function() {
+          fs.unlink("images/" + facebookid + dest);
+        });
+    });
   } catch (err) {
     console.log("error creating folders");
     console.error(err.message);
@@ -81,7 +81,11 @@ passport.use(
         const userDB = await User.findOne({ facebook_id: profile.id }).exec();
         if (!userDB) {
           // there is a bug on the Facebook api that is preventing the profile photos from being downloaded
-          downloadFile(profile.photos[0].value, "/profilepic.jpg", profile.id);
+          downloadFile(
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnHxpzVvcf9u80X5iUffgDjrT7Luz2tJau0m3WAknCjUW3RgGI-6VQH144WX36gviI77k&usqp=CAU",
+            "/profilepic.jpg",
+            profile.id
+          );
           const profilePicLocation = path.join(
             "public",
             "images",
