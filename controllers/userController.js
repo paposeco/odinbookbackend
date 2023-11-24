@@ -404,145 +404,44 @@ exports.post_update_profile = [
       let updateuser;
       if (countryDb === null) {
         const newcountry = new Country({
-          counter: 1,
           country: req.body.country
         });
         const savecountry = await newcountry.save();
-        if (req.body.birthday.includes("undefined")) {
-          if (req.body.gender === "Empty") {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              country: savecountry._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          } else {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              gender: req.body.gender,
-              country: savecountry._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          }
-        } else {
-          if (req.body.gender === "Empty") {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              birthday: req.body.birthday,
-              country: savecountry._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          } else {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              birthday: req.body.birthday,
-              gender: req.body.gender,
-              country: savecountry._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          }
-        }
+        updateuser = new User({
+          _id: existingProfile._id,
+          facebook_id: existingProfile.facebook_id,
+          display_name: req.body.display_name,
+          country: savecountry._id,
+          profile_pic: existingProfile.profile_pic,
+          date_joined: existingProfile.date_joined,
+          posts: existingProfile.posts,
+          friends: existingProfile.friends,
+          requests_sent: existingProfile.requests_sent,
+          requests_received: existingProfile.requests_received,
+          gender: req.body.gender !== "" ? req.body.gender : "",
+          birthday: req.body.birthday.includes("undefined")
+            ? existingProfile.birthday
+            : req.body.birthday
+        });
       } else {
-        await Country.findByIdAndUpdate(countryDb._id, {
-          $inc: { counter: 1 }
-        }).exec();
-        if (req.body.birthday.includes("undefined")) {
-          if (req.body.gender === "Empty") {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              country: countryDb._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          } else {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              gender: req.body.gender,
-              country: countryDb._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          }
-        } else {
-          if (req.body.gender === "Empty") {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              birthday: req.body.birthday,
-              country: countryDb._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          } else {
-            updateuser = new User({
-              _id: existingProfile._id,
-              facebook_id: existingProfile.facebook_id,
-              display_name: req.body.display_name,
-              birthday: req.body.birthday,
-              gender: req.body.gender,
-              country: countryDb._id,
-              profile_pic: existingProfile.profile_pic,
-              date_joined: existingProfile.date_joined,
-              posts: existingProfile.posts,
-              friends: existingProfile.friends,
-              requests_sent: existingProfile.requests_sent,
-              requests_received: existingProfile.requests_received,
-              friends_birthdays: existingProfile.friends_birthdays
-            });
-          }
-        }
+        updateuser = new User({
+          _id: existingProfile._id,
+          facebook_id: existingProfile.facebook_id,
+          display_name: req.body.display_name,
+          country: countryDb._id,
+          profile_pic: existingProfile.profile_pic,
+          date_joined: existingProfile.date_joined,
+          posts: existingProfile.posts,
+          friends: existingProfile.friends,
+          requests_sent: existingProfile.requests_sent,
+          requests_received: existingProfile.requests_received,
+          gender: req.body.gender !== "" ? req.body.gender : "",
+          birthday: req.body.birthday.includes("undefined")
+            ? existingProfile.birthday
+            : req.body.birthday
+        });
       }
+
       await User.findByIdAndUpdate(existingProfile._id, updateuser);
       return res.status(201).json({ message: "profile updated" });
     } catch (err) {

@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const CountrySchema = new Schema({
-  counter: { type: Number, required: true },
   country: {
     type: String,
     enum: [

@@ -9,7 +9,11 @@ const UserSchema = new Schema(
     display_name: { type: String, required: true },
     profile_pic: { type: String },
     birthday: { type: Date },
-    gender: { type: String, enum: ["female", "male", "other"] },
+    gender: {
+      type: String,
+      enum: ["female", "male", "other", ""],
+      default: ""
+    },
     country: { type: Schema.Types.ObjectId, ref: "Country" },
     date_joined: { type: Date, default: Date.now },
     posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
