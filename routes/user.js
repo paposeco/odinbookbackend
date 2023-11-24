@@ -3,10 +3,12 @@ import user_controller from "../controllers/userController";
 import passport from "passport";
 import multer from "multer";
 import User from "../models/user";
+import process from "process";
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, `/public/multertest`);
+    console.log(process.cwd());
+    cb(null, `public/multertest`);
   },
   filename: function(req, file, cb) {
     cb(null, "newprofilepic");
