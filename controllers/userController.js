@@ -101,6 +101,9 @@ exports.accept_friend_request = async function(req, res, next) {
       facebook_id: currentUser
     }).exec();
     const friendDBId = await User.findOne({ facebook_id: friendId }).exec();
+    console.log("current user " + currentUser);
+    console.log("friend id " + friendId);
+
     if (!currentUserDBId || !friendDBId) {
       const err = new Error("User not found");
       return res.status(404).json({ message: err });
@@ -108,15 +111,20 @@ exports.accept_friend_request = async function(req, res, next) {
       if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
 
-        await User.findByIdAndUpdate(currentUserDBId._id, {
+        const currU = await User.findByIdAndUpdate(currentUserDBId._id, {
           $pull: { requests_received: friendDBId._id },
           $push: { friends: friendDBId._id }
         }).exec();
 
-        await User.findByIdAndUpdate(friendDBId._id, {
+        const friendU = await User.findByIdAndUpdate(friendDBId._id, {
           $pull: { requests_sent: currentUserDBId._id },
           $push: { friends: currentUserDBId._id }
         }).exec();
+
+        console.log("id " + currentUserDBId._id);
+        console.log(currU);
+        console.log("id " + friendDBId._id);
+        console.log(friendU);
       } else {
         //remove from request received on friend and from requests sent from user
 
@@ -421,7 +429,8 @@ exports.post_update_profile = [
           gender: req.body.gender !== "" ? req.body.gender : "",
           birthday: req.body.birthday.includes("undefined")
             ? existingProfile.birthday
-            : req.body.birthday
+            : req.body.birthday,
+          guest: existingProfile.guest
         });
       } else {
         updateuser = new User({
@@ -438,7 +447,8 @@ exports.post_update_profile = [
           gender: req.body.gender !== "" ? req.body.gender : "",
           birthday: req.body.birthday.includes("undefined")
             ? existingProfile.birthday
-            : req.body.birthday
+            : req.body.birthday,
+          guest: existingProfile.guest
         });
       }
 
