@@ -207,8 +207,16 @@ router.post("/createguestlogin", async function(req, res, next) {
         guest: true,
         password: hashedpassword
       });
-      const folderProfile = path.join("public", "images", "01111111122222221");
+      const folderProfile = path.join(
+        __dirname,
+        "..",
+        "public",
+        "images",
+        "01111111122222221"
+      );
       const folderPostImages = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222221/posts"
@@ -244,11 +252,15 @@ router.post("/additionalusers", async function(req, res, next) {
         password: hashedpassword
       });
       const folderProfilejohn = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222222"
       );
       const folderPostImagesjohn = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222222/posts"
@@ -266,11 +278,15 @@ router.post("/additionalusers", async function(req, res, next) {
         password: hashedpassword
       });
       const folderProfilejane = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222223"
       );
       const folderPostImagesjane = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222223/posts"
@@ -288,11 +304,15 @@ router.post("/additionalusers", async function(req, res, next) {
         password: hashedpassword
       });
       const folderProfilekate = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222224"
       );
       const folderPostImageskate = path.join(
+        __dirname,
+        "..",
         "public",
         "images",
         "01111111122222224/posts"
