@@ -106,26 +106,24 @@ exports.accept_friend_request = async function(req, res, next) {
       const err = new Error("User not found");
       return res.status(404).json({ message: err });
     } else {
-      console.log(currentUserDBId.requests_received);
-      console.log(currentUserDBId.requests_received.includes(friendDBId._id));
       if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
 
         await User.findByIdAndUpdate(currentUserDBId._id, {
           $push: { friends: friendDBId._id }
-        }).exec();
+        });
 
         await User.findByIdAndUpdate(currentUserDBId._id, {
-          $pull: { requests_received: { _id: ObjectId(friendDBId._id) } }
-        }).exec();
+          $pull: { requests_received: { _id: friendDBId._id } }
+        });
 
         await User.findByIdAndUpdate(friendDBId._id, {
           $push: { friends: currentUserDBId._id }
-        }).exec();
+        });
 
         await User.findByIdAndUpdate(friendDBId._id, {
-          $pull: { requests_sent: { _id: ObjectId(currentUserDBId._id) } }
-        }).exec();
+          $pull: { requests_sent: { _id: currentUserDBId._id } }
+        });
       } else {
         //remove from request received on friend and from requests sent from user
 
