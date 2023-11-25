@@ -108,12 +108,22 @@ exports.accept_friend_request = async function(req, res, next) {
     } else {
       if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
-
+        console.log("currentuser");
+        console.log("before changes");
+        console.log(currentUserDBId);
         currentUserDBId.friends.push(friendDBId._id);
         currentUserDBId.requests_received.pull(friendDBId._id);
 
+        console.log("after changes");
+        console.log(currentUserDBId);
+        console.log("***********************");
+        console.log("currentuser");
+        console.log("before changes");
+        console.log(friendDBId);
         friendDBId.friends.push(currentUserDBId._id);
         friendDBId.requests_sent.pull(currentUserDBId._id);
+        console.log("after changes");
+        console.log(friendDBId);
 
         await currentUserDBId.save();
         await friendDBId.save();
@@ -439,7 +449,7 @@ exports.post_update_profile = [
           friends: existingProfile.friends,
           requests_sent: existingProfile.requests_sent,
           requests_received: existingProfile.requests_received,
-          gender: req.body.gender !== "" ? req.body.gender : "",
+          gender: req.body.gender !== "" ? req.body.gender.toLowerCase() : "",
           birthday: req.body.birthday.includes("undefined")
             ? existingProfile.birthday
             : req.body.birthday,
@@ -457,7 +467,7 @@ exports.post_update_profile = [
           friends: existingProfile.friends,
           requests_sent: existingProfile.requests_sent,
           requests_received: existingProfile.requests_received,
-          gender: req.body.gender !== "" ? req.body.gender : "",
+          gender: req.body.gender !== "" ? req.body.gender.toLowerCase() : "",
           birthday: req.body.birthday.includes("undefined")
             ? existingProfile.birthday
             : req.body.birthday,
