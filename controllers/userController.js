@@ -106,60 +106,22 @@ exports.accept_friend_request = async function(req, res, next) {
       const err = new Error("User not found");
       return res.status(404).json({ message: err });
     } else {
+      currentUserDBId.friends.push(friendDBId._id);
+      await currentUserDBId.save();
+      friendDBId.friends.push(currentUserDBId._id);
+      await friendDBId.save();
       if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
-        console.log("currentuser");
-        console.log("before changes");
-        console.log(currentUserDBId);
-        currentUserDBId.friends.push(friendDBId._id);
         currentUserDBId.requests_received.pull(friendDBId._id);
-
-        console.log("after changes");
-        console.log(currentUserDBId);
-        console.log("***********************");
-        console.log("currentuser");
-        console.log("before changes");
-        console.log(friendDBId);
-        friendDBId.friends.push(currentUserDBId._id);
-        friendDBId.requests_sent.pull(currentUserDBId._id);
-        console.log("after changes");
-        console.log(friendDBId);
-
         await currentUserDBId.save();
+        friendDBId.requests_sent.pull(currentUserDBId._id);
         await friendDBId.save();
-        /* await User.findByIdAndUpdate(currentUserDBId._id, {
-         *   $push: { friends: friendDBId._id }
-         * });
-
-         * await User.findByIdAndUpdate(currentUserDBId._id, {
-         *   $pull: { requests_received: { _id: friendDBId._id } }
-         * });
-
-         * await User.findByIdAndUpdate(friendDBId._id, {
-         *   $push: { friends: currentUserDBId._id }
-         * });
-
-         * await User.findByIdAndUpdate(friendDBId._id, {
-         *   $pull: { requests_sent: { _id: currentUserDBId._id } }
-         * }); */
       } else {
         //remove from request received on friend and from requests sent from user
-
-        await User.findByIdAndUpdate(currentUserDBId._id, {
-          $push: { friends: friendDBId._id }
-        }).exec();
-
-        await User.findByIdAndUpdate(currentUserDBId._id, {
-          $pull: { requests_sent: friendDBId._id }
-        }).exec();
-
-        await User.findByIdAndUpdate(friendDBId._id, {
-          $push: { friends: currentUserDBId._id }
-        }).exec();
-
-        await User.findByIdAndUpdate(friendDBId._id, {
-          $pull: { requests_received: currentUserDBId._id }
-        }).exec();
+        currentUserDBId.requests_sent.pull(friendDBId._id);
+        await currentUserDBId.save();
+        friendDBId.requests_received.pull(currentUserDBId._id);
+        await friendDBId.save();
       }
       return res.status(201).json({ message: "friend accepted" });
     }
