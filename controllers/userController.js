@@ -109,21 +109,29 @@ exports.accept_friend_request = async function(req, res, next) {
       if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
 
-        await User.findByIdAndUpdate(currentUserDBId._id, {
-          $push: { friends: friendDBId._id }
-        });
+        currentUserDBId.friends.push(friendDBId._id);
+        currentUserDBId.requests_received.pull(friendDBId._id);
 
-        await User.findByIdAndUpdate(currentUserDBId._id, {
-          $pull: { requests_received: { _id: friendDBId._id } }
-        });
+        friendDBId.friends.push(currentUserDBId._id);
+        friendDBId.requests_sent.pull(currentUserDBId._id);
 
-        await User.findByIdAndUpdate(friendDBId._id, {
-          $push: { friends: currentUserDBId._id }
-        });
+        await currentUserDBId.save();
+        await friendDBId.save();
+        /* await User.findByIdAndUpdate(currentUserDBId._id, {
+         *   $push: { friends: friendDBId._id }
+         * });
 
-        await User.findByIdAndUpdate(friendDBId._id, {
-          $pull: { requests_sent: { _id: currentUserDBId._id } }
-        });
+         * await User.findByIdAndUpdate(currentUserDBId._id, {
+         *   $pull: { requests_received: { _id: friendDBId._id } }
+         * });
+
+         * await User.findByIdAndUpdate(friendDBId._id, {
+         *   $push: { friends: currentUserDBId._id }
+         * });
+
+         * await User.findByIdAndUpdate(friendDBId._id, {
+         *   $pull: { requests_sent: { _id: currentUserDBId._id } }
+         * }); */
       } else {
         //remove from request received on friend and from requests sent from user
 
