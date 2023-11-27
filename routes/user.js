@@ -15,7 +15,8 @@ const storage = multer.diskStorage({
   }
 });
 
-const uploadPhoto = multer({ storage: storage });
+const upload = multer({ storage: storage }).single("newprofilepic");
+//const uploadPhoto = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -58,9 +59,33 @@ router.post(
 router.post(
   "/:facebookid/uploadit/:imagename",
   passport.authenticate("jwt", { session: false }),
-  uploadPhoto.single("newprofilepic"),
+  function(req, res) {
+    upload(req, res, function(err) {
+      if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        console.log("multer");
+        console.log(err);
+      } else if (err) {
+        console.log("other");
+        console.log(err);
+        // An unknown error occurred when uploading.
+      }
+    });
+  },
+  (req, res, next) => {
+    console.log("ended uplaod");
+    next();
+  },
+  // uploadPhoto.single("newprofilepic"),
   user_controller.post_uploadphoto
 );
+
+/* router.post(
+ *   "/:facebookid/uploadit/:imagename",
+ *   passport.authenticate("jwt", { session: false }),
+ *   uploadPhoto.single("newprofilepic"),
+ *   user_controller.post_uploadphoto
+ * ); */
 
 router.post(
   "/:facebookid/searchuser",
