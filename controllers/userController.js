@@ -319,7 +319,7 @@ exports.get_users = async function(req, res) {
       .sort({ date_joined: 1 })
       .exec();
 
-    console.log(teste2);
+    console.log(test2);
 
     return res.status(201).json({ allUsersNotFriends, currentUser });
   } catch (err) {
