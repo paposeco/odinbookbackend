@@ -300,7 +300,7 @@ exports.get_users = async function(req, res) {
 
     const test = await User.find(
       { friends: { $nin: [currentUser._id] } },
-      "display_name facebook_id profile_pic"
+      "display_name facebook_id profile_pic friends"
     )
       .limit(20)
       .skip(skipNumber)
@@ -309,6 +309,18 @@ exports.get_users = async function(req, res) {
 
     console.log(test);
     console.log(currentUser._id);
+
+    const test2 = await User.find(
+      { friends: { $nin: ["6564c876e1f5c11de20610e7"] } },
+      "display_name facebook_id profile_pic friends"
+    )
+      .limit(20)
+      .skip(skipNumber)
+      .sort({ date_joined: 1 })
+      .exec();
+
+    console.log(teste2);
+
     return res.status(201).json({ allUsersNotFriends, currentUser });
   } catch (err) {
     return res.status(400).json({ message: err });
