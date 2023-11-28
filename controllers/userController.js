@@ -109,7 +109,7 @@ exports.accept_friend_request = async function(req, res, next) {
       await currentUserDBId.save();
       friendDBId.friends.push(currentUserDBId);
       await friendDBId.save();
-      if (currentUserDBId.requests_received.includes(friendDBId)) {
+      if (currentUserDBId.requests_received.includes(friendDBId._id)) {
         // remove from requests received on current user and remove from requests sent from friend
         currentUserDBId.requests_received.pull(friendDBId);
         await currentUserDBId.save();
