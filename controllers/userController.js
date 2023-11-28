@@ -106,21 +106,21 @@ exports.accept_friend_request = async function(req, res, next) {
       const err = new Error("User not found");
       return res.status(404).json({ message: err });
     } else {
-      currentUserDBId.friends.push(friendDBId._id);
+      currentUserDBId.friends.push(friendDBId);
       await currentUserDBId.save();
-      friendDBId.friends.push(currentUserDBId._id);
+      friendDBId.friends.push(currentUserDBId);
       await friendDBId.save();
-      if (currentUserDBId.requests_received.includes(friendDBId._id)) {
+      if (currentUserDBId.requests_received.includes(friendDBId)) {
         // remove from requests received on current user and remove from requests sent from friend
-        currentUserDBId.requests_received.pull(friendDBId._id);
+        currentUserDBId.requests_received.pull(friendDBId);
         await currentUserDBId.save();
-        friendDBId.requests_sent.pull(currentUserDBId._id);
+        friendDBId.requests_sent.pull(currentUserDBId);
         await friendDBId.save();
       } else {
         //remove from request received on friend and from requests sent from user
-        currentUserDBId.requests_sent.pull(friendDBId._id);
+        currentUserDBId.requests_sent.pull(friendDBId);
         await currentUserDBId.save();
-        friendDBId.requests_received.pull(currentUserDBId._id);
+        friendDBId.requests_received.pull(currentUserDBId);
         await friendDBId.save();
       }
       return res.status(201).json({ message: "friend accepted" });
@@ -291,8 +291,8 @@ exports.get_users = async function(req, res) {
     const skipNumber = req.params.skip * 20;
     const allUsersNotFriends = await User.find(
       {
-        friends: { $nin: [currentUser._id, ObjectId(currentUser._id)] },
-        _id: { $ne: currentUser._id }
+        friends: { $nin: [currentUser] },
+        _id: { $ne: currentUser }
       },
       "display_name facebook_id profile_pic"
     )
