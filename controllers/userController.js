@@ -299,7 +299,7 @@ exports.get_users = async function(req, res) {
       .exec();
 
     const allUsersNotFriends2 = await User.find({
-      friends: { $nin: [currentUser._id] }
+      friends: { $ne: currentUser._id }
     });
 
     console.log(allUsersNotFriends2);
