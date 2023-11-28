@@ -194,138 +194,74 @@ router.post("/guestlogin", (req, res, next) => {
 });
 
 // create guest
-router.post("/createguestlogin", async function(req, res, next) {
-  bcrypt.hash(req.body.password, 10, async function(err, hashedpassword) {
-    if (err) {
-      return next(err);
-    }
-    try {
-      const guest = new User({
-        facebook_id: "01111111122222221",
-        display_name: "Guest",
-        profile_pic: path.join("public", "images", "defaultimage.jpg"),
-        guest: true,
-        password: hashedpassword,
-        gender: "male"
-      });
-      /* const folderProfile = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222221"
-       * );
-       * const folderPostImages = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222221/posts"
-       * );
-       * await mkdir(folderProfile);
-       * await mkdir(folderPostImages); */
-      await guest.save();
-      return res.json({ message: "user created" });
-    } catch (err) {
-      return res.json({ err });
-    }
-  });
-});
+/* router.post("/createguestlogin", async function(req, res, next) {
+ *   bcrypt.hash(req.body.password, 10, async function(err, hashedpassword) {
+ *     if (err) {
+ *       return next(err);
+ *     }
+ *     try {
+ *       const guest = new User({
+ *         facebook_id: "01111111122222221",
+ *         display_name: "Guest",
+ *         profile_pic: path.join("public", "images", "defaultimage.jpg"),
+ *         guest: true,
+ *         password: hashedpassword,
+ *         gender: "male"
+ *       });
+ *       await guest.save();
+ *       return res.json({ message: "user created" });
+ *     } catch (err) {
+ *       return res.json({ err });
+ *     }
+ *   });
+ * }); */
 
 // add other users
-router.post("/additionalusers", async function(req, res, next) {
-  bcrypt.hash(req.body.password, 10, async function(err, hashedpassword) {
-    if (err) {
-      return next(err);
-    }
-    try {
-      //john smith
-      const fakeuserjohn = new User({
-        facebook_id: "01111111122222222",
-        display_name: "John Smith",
-        profile_pic: path.join("public", "images", "defaultimage.jpg"),
-        guest: false,
-        password: hashedpassword,
-        gender: "male"
-      });
-      /* const folderProfilejohn = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222222"
-       * );
-       * const folderPostImagesjohn = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222222/posts"
-       * );
-       * await mkdir(folderProfilejohn);
-       * await mkdir(folderPostImagesjohn); */
-      await fakeuserjohn.save();
-
-      //jane doe
-      const fakeuserjane = new User({
-        facebook_id: "01111111122222223",
-        display_name: "Jane Doe",
-        profile_pic: path.join("public", "images", "defaultimage.jpg"),
-        guest: false,
-        password: hashedpassword,
-        gender: "female"
-      });
-      /* const folderProfilejane = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222223"
-       * );
-       * const folderPostImagesjane = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222223/posts"
-       * );
-       * await mkdir(folderProfilejane);
-       * await mkdir(folderPostImagesjane); */
-      await fakeuserjane.save();
-
-      // kate davis
-      const fakeuserkate = new User({
-        facebook_id: "01111111122222223",
-        display_name: "Kate Davis",
-        profile_pic: path.join("public", "images", "defaultimage.jpg"),
-        guest: false,
-        password: hashedpassword,
-        gender: "female"
-      });
-      /* const folderProfilekate = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222224"
-       * );
-       * const folderPostImageskate = path.join(
-       *   __dirname,
-       *   "..",
-       *   "public",
-       *   "images",
-       *   "01111111122222224/posts"
-       * ); */
-      /* await mkdir(folderProfilekate);
-       * await mkdir(folderPostImageskate); */
-      await fakeuserkate.save();
-
-      return res.json({ message: "users created" });
-    } catch (err) {
-      return res.json({ err });
-    }
-  });
-});
+/* router.post("/additionalusers", async function(req, res, next) {
+ *   bcrypt.hash(req.body.password, 10, async function(err, hashedpassword) {
+ *     if (err) {
+ *       return next(err);
+ *     }
+ *     try {
+ *       //john smith
+ *       const fakeuserjohn = new User({
+ *         facebook_id: "01111111122222222",
+ *         display_name: "John Smith",
+ *         profile_pic: path.join("public", "images", "defaultimage.jpg"),
+ *         guest: false,
+ *         password: hashedpassword,
+ *         gender: "male"
+ *       });
+ *       await fakeuserjohn.save();
+ *
+ *       //jane doe
+ *       const fakeuserjane = new User({
+ *         facebook_id: "01111111122222223",
+ *         display_name: "Jane Doe",
+ *         profile_pic: path.join("public", "images", "defaultimage.jpg"),
+ *         guest: false,
+ *         password: hashedpassword,
+ *         gender: "female"
+ *       });
+ *       await fakeuserjane.save();
+ *
+ *       // kate davis
+ *       const fakeuserkate = new User({
+ *         facebook_id: "01111111122222224",
+ *         display_name: "Kate Davis",
+ *         profile_pic: path.join("public", "images", "defaultimage.jpg"),
+ *         guest: false,
+ *         password: hashedpassword,
+ *         gender: "female"
+ *       });
+ *       await fakeuserkate.save();
+ *
+ *       return res.json({ message: "users created" });
+ *     } catch (err) {
+ *       return res.json({ err });
+ *     }
+ *   });
+ * }); */
 
 router.get(
   "/api/auth/facebook/callback",
@@ -338,7 +274,6 @@ router.get(
     // successfully logged in
     const tokenstring = encodeURIComponent(req.user.jwtoken);
     const facebookstring = encodeURIComponent(req.user.profile.id);
-    //res.redirect(process.env["REACT_APP_URL"] + "loggedin");
     res.redirect(
       process.env["REACT_APP_URL"] +
       "/loggedin/valid?token=" +
