@@ -298,9 +298,11 @@ exports.get_users = async function(req, res) {
       .sort({ date_joined: 1 })
       .exec();
 
-    const query = User.find({}).where("friends").nin([currentUser._id]);
-    const queryresult = await query.exec();
-    console.log(queryresult);
+    const allUsersNotFriends2 = await User.find({
+      friends: { $nin: [currentUser._id] }
+    });
+
+    console.log(allUsersNotFriends2);
 
     return res.status(201).json({ allUsersNotFriends, currentUser });
   } catch (err) {
