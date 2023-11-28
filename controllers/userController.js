@@ -20,15 +20,14 @@ exports.check_friend_status = async function(req, res, next) {
       facebook_id: friendId
     }).exec();
 
-    const friends = currentUserDBId.friends.includes(friendDBId._id);
+    const friends = currentUserDBId.friends.includes(friendDBId);
     if (friends) {
       return res.status(201).json({ friends: true, requestsent: false });
     } else {
-      const friendrequestsentexists = currentUserDBId.requests_sent.includes(
-        friendDBId._id
-      );
+      const friendrequestsentexists =
+        currentUserDBId.requests_sent.includes(friendDBId);
       const friendrequestreceivedexists =
-        currentUserDBId.requests_received.includes(friendDBId._id);
+        currentUserDBId.requests_received.includes(friendDBId);
       return res.status(201).json({
         friends: false,
         requestsent: friendrequestsentexists,
@@ -54,11 +53,11 @@ exports.add_friend = asyncHandler(async (req, res, next) => {
     return res.status(404).json({ message: err });
   } else {
     const [updateUser, updateFriend] = await Promise.all([
-      User.findByIdAndUpdate(currentUserDBId._id, {
-        $push: { requests_sent: friendDBId._id }
+      User.findByIdAndUpdate(currentUserDBId, {
+        $push: { requests_sent: friendDBId }
       }).exec(),
-      User.findByIdAndUpdate(friendDBId._id, {
-        $push: { requests_received: currentUserDBId._id }
+      User.findByIdAndUpdate(friendDBId, {
+        $push: { requests_received: currentUserDBId }
       }).exec()
     ]);
     return res.status(201).json({ message: "friend request sent" });
@@ -78,12 +77,12 @@ exports.remove_friend = async function(req, res, next) {
       const err = new Error("User not found");
       return res.status(404).json({ message: err });
     } else {
-      await User.findByIdAndUpdate(currentUserDBId._id, {
-        $pull: { friends: friendDBId._id }
+      await User.findByIdAndUpdate(currentUserDBId, {
+        $pull: { friends: friendDBId }
       }).exec();
 
-      await User.findByIdAndUpdate(friendDBId._id, {
-        $pull: { friends: currentUserDBId._id }
+      await User.findByIdAndUpdate(friendDBId, {
+        $pull: { friends: currentUserDBId }
       }).exec();
 
       return res.status(201).json({ message: "friend removed" });
@@ -139,7 +138,7 @@ exports.get_currentuserprofile = async function(req, res) {
       .exec();
 
     const userposts = await Post.find({
-      author: user._id
+      author: user
     })
       .limit(5)
       .sort({ date: -1 })
